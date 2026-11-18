@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { JosephRig, MOTO_FIT } from './joseph';
 
 // ─────────────────────────────────────────────────────────────
 // Carrefour fictif inspiré du secteur de la Marina (Cotonou), un matin.
@@ -198,10 +199,18 @@ export function makeMoto(body: number, rider?: Person): Moto {
   const frame = box(0.22, 0.26, 1.0, mat(body)); frame.position.set(0, 0.55, 0); root.add(frame);
   const tank = box(0.3, 0.2, 0.42, mat(body)); tank.position.set(0, 0.72, -0.22); root.add(tank);
   const seat = box(0.3, 0.1, 0.62, mat(0x1b1b1b)); seat.position.set(0, 0.74, 0.25); root.add(seat);
-  const fork = box(0.08, 0.6, 0.08, mat(0x888888)); fork.position.set(0, 0.62, -0.6); fork.rotation.x = -0.35; root.add(fork);
-  const bar = box(0.7, 0.05, 0.05, mat(0x222222)); bar.position.set(0, 0.98, -0.66); root.add(bar);
-  for (const s of [-1, 1]) { const mir = box(0.08, 0.06, 0.02, mat(0x222222)); mir.position.set(s * 0.33, 1.2, -0.66); root.add(mir); }
-  const lamp = box(0.18, 0.14, 0.08, mat(0xfff6d8, { emissive: 0x665f40 })); lamp.position.set(0, 0.9, -0.76); root.add(lamp);
+  const fork = box(0.08, 0.66, 0.08, mat(0x888888)); fork.position.set(0, 0.64, -0.6); fork.rotation.x = -0.3; root.add(fork);
+  // guidon, poignées et repose-pieds aux cotes du modèle de Joseph (joseph.ts)
+  const F = MOTO_FIT;
+  const bar = cyl(0.014, 0.014, F.gripX * 2 - 0.06, mat(0x2a2a2a), 8); bar.rotation.z = Math.PI / 2; bar.position.set(0, F.barY, F.barZ); root.add(bar);
+  for (const s of [-1, 1]) {
+    const grip = cyl(F.gripR, F.gripR, F.gripLen, mat(0x141414), 10); grip.rotation.z = Math.PI / 2; grip.position.set(s * F.gripX, F.barY, F.barZ); root.add(grip);
+    const mir = box(0.08, 0.06, 0.02, mat(0x222222)); mir.position.set(s * 0.28, F.barY + 0.22, F.barZ - 0.02); root.add(mir);
+    const stem = cyl(0.007, 0.007, 0.22, mat(0x222222), 6); stem.position.set(s * 0.26, F.barY + 0.11, F.barZ - 0.01); root.add(stem);
+    const peg = cyl(0.016, 0.016, 0.11, mat(0x333333), 8); peg.rotation.z = Math.PI / 2; peg.position.set(s * F.pegX, F.pegY, F.pegZ); root.add(peg);
+    const brk = box(0.1, 0.03, 0.03, mat(0x333333)); brk.position.set(s * (F.pegX - 0.1), F.pegY, F.pegZ); root.add(brk);
+  }
+  const lamp = box(0.18, 0.14, 0.08, mat(0xfff6d8, { emissive: 0x665f40 })); lamp.position.set(0, 0.9, -0.72); root.add(lamp);
   const tail = box(0.14, 0.06, 0.04, mat(0xc0201a, { emissive: 0x400000 })); tail.position.set(0, 0.72, 0.62); root.add(tail);
   const plate = box(0.24, 0.12, 0.01, mat(0xf2f2f2), false); plate.position.set(0, 0.6, 0.66); root.add(plate);
   if (rider) {
@@ -548,7 +557,7 @@ function mergeStatic(scene: THREE.Scene, roots: THREE.Object3D[]) {
 export class World {
   scene = new THREE.Scene();
   joseph: Moto;
-  josephRider: Person;
+  josephRig: JosephRig;
   phone: THREE.Mesh;
   other: Moto;
   minibus: THREE.Group;
@@ -618,10 +627,11 @@ export class World {
     s.add(this.lightCross.root);
 
     // ── Joseph : casque jaune, chemise wax sarcelle (identique dans toutes les scènes) ──
-    this.josephRider = makePerson({ shirt: waxJoseph(), pants: 0x262b36, helmet: C.helmet, seated: true });
-    this.phone = box(0.08, 0.15, 0.02, mat(0x111111, { emissive: 0x223355 }));
-    this.joseph = makeMoto(0x8e1b1b, this.josephRider);
-    this.josephRider.armR.add(this.phone); this.phone.position.set(0, -0.62, -0.08);
+    // Joseph : modèle humain articulé (joseph.ts), posé par cinématique inverse sur la moto
+    this.josephRig = new JosephRig();
+    this.phone = this.josephRig.phone;
+    this.joseph = makeMoto(0x8e1b1b);
+    this.joseph.root.add(this.josephRig.root);
     s.add(this.joseph.root);
 
     // Autre moto (passe au rouge)

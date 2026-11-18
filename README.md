@@ -68,6 +68,32 @@ Un seul carrefour fictif, inspiré du secteur de la Marina, un matin. Les photos
 
 Allègement téléphone : le décor fixe est fusionné par matériau et les véhicules d'arrière-plan sont « cuits » en un seul bloc. Résultat mesuré : 263 appels de dessin par image (ombres comprises), contre 735 avant fusion.
 
+## Personnage de Joseph (v3 · modèle humain articulé)
+
+Aucun modèle GLB n'a été fourni, et les modèles humains accessibles sous licence compatible ne convenaient pas (trop rudimentaires, ou non redistribuables). Joseph est donc un **modèle humain articulé original**, dans `src/joseph.ts`, sans fichier externe :
+- un squelette bassin → colonne → épaules → coudes → poignets, et hanches → genoux → chevilles, proportionné pour un adulte d'environ 1,72 m ;
+- des bras et des jambes posés par **cinématique inverse à deux segments** : les mains se referment sur les poignées, les pieds se posent sur les repose-pieds ; le guidon, les poignées et les repose-pieds de la moto partagent les mêmes cotes (`MOTO_FIT`) ;
+- des épaules arrondies (deltoïdes), des membres effilés, un bassin posé sur la selle, le casque jaune conservé ;
+- une chemise wax en matériau mat (rugosité 0,93), avec une carte de normales procédurale : grain fin, armure sergé et quelques plis souples à la taille et au dos.
+
+Contrôles mesurés (`window.__marina.josephCheck()`), dans le repère de la moto :
+
+| Contrôle | Résultat |
+|---|---|
+| Mains | à 2,2 cm de l'axe des poignées, sur la longueur de la poignée |
+| Bassin | posé sur la selle (écart 0 cm) |
+| Semelles | 2 mm au-dessus des repose-pieds |
+| Intersections | aucune entre chaussures ou genoux et le cadre, le réservoir ou les roues |
+
+**Pour aller plus loin avec un vrai modèle 3D**, fournir un fichier `joseph.glb` qui respecte ces critères :
+- glTF 2.0 binaire, humanoïde riggé, squelette au nommage Mixamo (`mixamorig:Hips`, `Spine`…, `LeftHand`, `RightFoot`) ou au standard VRM ;
+- 8 000 à 20 000 triangles, textures PBR 1024 px (couleur, normales, rugosité), poids inférieur à 3 Mo ;
+- échelle 1 unité = 1 m, debout en pose A ou T, regard vers +Z ;
+- licence CC0 ou CC-BY (par exemple les « Universal Base Characters » de Quaternius, en CC0) ;
+- chemise et casque séparés en matériaux distincts, pour garder la chemise wax et le casque jaune.
+
+La pose par cinématique inverse de `joseph.ts` peut alors piloter les os du GLB.
+
 ## Architecture
 
 ```

@@ -85,12 +85,7 @@ function ambient(w: World, t: number, release: number | null) {
 /** État commun réinitialisé au début de chaque pose. */
 function base(w: World, c: ShotCtx) {
   w.replay.visible = false;
-  w.phone.visible = false;
-  const r = w.josephRider;
-  r.armR.rotation.set(1.05, 0, 0);
-  r.armL.rotation.set(1.05, 0, 0);
-  r.head.rotation.set(0, 0, 0);
-  r.root.rotation.x = -0.12;
+  w.josephRig.setPose({});
   placeMoto(w.other, OTHER_X, -HIDDEN);
   placeCar(w, HIDDEN);
   w.lightMain.set('red'); w.lightFar.set('red'); w.lightCross.set('green');
@@ -163,10 +158,7 @@ export const SHOTS: Record<ShotId, Shot> = {
     pose(w, t, c) {
       base(w, c); ambient(w, 30 + t, null);
       placeMoto(w.joseph, PARK.x, PARK.z);
-      w.phone.visible = true;
-      w.josephRider.armR.rotation.set(2.35, 0, -0.45);
-      w.josephRider.head.rotation.x = -0.15;
-      w.josephRider.head.rotation.y = c.reduced ? 0.25 : 0.25 + Math.sin(t * 0.8) * 0.06;
+      w.josephRig.setPose({ phone: 1, headYaw: c.reduced ? 0.25 : 0.25 + Math.sin(t * 0.8) * 0.06, headPitch: 0.12 });
       return { pos: V(2.4, 1.7, PARK.z - 4.6), look: V(PARK.x + 0.2, 1.25, PARK.z + 0.6) };
     },
   },
@@ -182,8 +174,7 @@ export const SHOTS: Record<ShotId, Shot> = {
       const yaw = (smooth(0, 0.15, u) - smooth(0.15, 0.3, u)) * 0.18;
       placeMoto(w.joseph, jx, jz, yaw);
       const k = smooth(0, 0.8, t);
-      w.josephRider.armR.rotation.set(lerp(2.35, 1.05, k), 0, lerp(-0.45, 0, k));
-      w.phone.visible = t < 0.5;
+      w.josephRig.setPose({ phone: 1 - k });
       placeMoto(w.other, OTHER_X, 48 - 11 * Math.max(0, t - 1.0));
       placeCar(w, carXAt(t - 9)); // loin à droite, derrière les immeubles
       return chase(jx, jz, 0, c.reduced, t, c.portrait);
@@ -216,7 +207,7 @@ export const SHOTS: Record<ShotId, Shot> = {
       w.lightCross.set(t < 6 ? 'green' : t < 7 ? 'yellow' : 'red');
       w.lightMain.set(t < 8 ? 'red' : 'green');
       w.lightFar.set(t < 8 ? 'red' : 'green');
-      w.josephRider.head.rotation.y = -0.5 * (smooth(1.2, 1.9, t) - smooth(3.6, 4.6, t));
+      w.josephRig.setPose({ headYaw: -0.5 * (smooth(1.2, 1.9, t) - smooth(3.6, 4.6, t)) });
       // angle 2 : la voiture traverse pendant que Joseph reste derrière la ligne
       if (t >= 1.1 && t < 5.2) return crossStreet(c);
       return chase(JOSEPH_X, jz, 0, c.reduced, t, c.portrait);
@@ -233,8 +224,7 @@ export const SHOTS: Record<ShotId, Shot> = {
       placeCar(w, carXAt(t));
       w.lightMain.set(t < 7.5 ? 'red' : 'green');
       w.lightFar.set(t < 7.5 ? 'red' : 'green');
-      w.josephRider.head.rotation.y = -0.6 * (smooth(1.1, 1.6, t) - smooth(2.8, 3.6, t));
-      w.josephRider.root.rotation.x = -0.12 + 0.18 * (smooth(0.9, 1.1, t) - smooth(2.6, 3.1, t));
+      w.josephRig.setPose({ headYaw: -0.6 * (smooth(1.1, 1.6, t) - smooth(2.8, 3.6, t)), lean: -0.16 * (smooth(0.9, 1.1, t) - smooth(2.6, 3.1, t)) });
       // Geste de l'agent (réf. 07) : main levée paume vers Joseph, puis bras tendu vers le bord de la route.
       const facing = smooth(8.4, 9.2, t);
       w.police.root.rotation.y = lerp(Math.PI, Math.atan2(POLICE.x - CONTROL.x, POLICE.z - CONTROL.z), facing);
@@ -256,7 +246,7 @@ export const SHOTS: Record<ShotId, Shot> = {
     pose(w, t, c) {
       base(w, c); ambient(w, 40 + t, null);
       placeMoto(w.joseph, CONTROL.x, CONTROL.z);
-      w.josephRider.head.rotation.y = -0.6;
+      w.josephRig.setPose({ headYaw: -0.6 });
       if (!c.reduced) w.police.armR.rotation.set(0.5 + 0.25 * Math.sin(t * 1.3), 0, -0.2);
       return { pos: V(1.6, 1.8, -29.6), look: V(7.2, 1.3, -34.8) };
     },
@@ -268,7 +258,7 @@ export const SHOTS: Record<ShotId, Shot> = {
     pose(w, t, c) {
       base(w, c); ambient(w, 40 + t, null);
       placeMoto(w.joseph, CONTROL.x, CONTROL.z);
-      w.josephRider.head.rotation.y = -0.6;
+      w.josephRig.setPose({ headYaw: -0.6 });
       if (!c.reduced) w.police.armR.rotation.set(0.8 + 0.3 * Math.sin(t * 1.1), 0, -0.25);
       return { pos: V(4.2, 1.75, -30.9), look: V(8.7, 1.5, -35.6) };
     },

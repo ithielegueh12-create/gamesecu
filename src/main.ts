@@ -83,6 +83,7 @@ let cues: Cue[] = [];
 let cueIdx = 0;
 let stepToken = 0; // invalide les rappels d'une étape quittée
 let frozen = false; // pause de test uniquement
+let camOverride: { pos: THREE.Vector3; look: THREE.Vector3; fov?: number } | null = null; // caméra libre (captures de validation)
 
 function playShot(id: ShotId, opts: { cues?: Cue[]; onEnd?: () => void } = {}) {
   shotId = id; shot = SHOTS[id]; shotT = 0; shotEnded = false;
@@ -500,6 +501,7 @@ function frame() {
     // en portrait, on recule les plans larges pour garder le carrefour lisible
     camPos.sub(camLook).multiplyScalar(1 + (1 - camera.aspect) * 0.9).add(camLook);
   }
+  if (camOverride) { camPos.copy(camOverride.pos); camLook.copy(camOverride.look); camera.up.copy(UP); if (camOverride.fov) { camera.fov = camOverride.fov; camera.updateProjectionMatrix(); } }
   camera.position.copy(camPos); camera.lookAt(camLook);
   renderer.render(world.scene, camera);
   updateLabels();
@@ -512,6 +514,41 @@ function frame() {
   get t() { return shotT; }, get calls() { return renderer.info.render.calls; }, get tris() { return renderer.info.render.triangles; }, get shot() { return shotId; }, get reduced() { return reduced; },
   skip() { if (Number.isFinite(shot.duration)) shotT = shot.duration - 0.01; },
   seek(t: number) { frozen = true; shotT = t; },
+  /** Caméra libre, en coordonnées relatives à la moto de Joseph (null pour revenir au plan du jeu). */
+  freeCam(p: number[] | null, l?: number[], fov?: number) {
+    if (!p) { camOverride = null; resize(); return; }
+    const m = world.joseph.root; m.updateMatrixWorld(true);
+    camOverride = { pos: m.localToWorld(new THREE.Vector3(...p)), look: m.localToWorld(new THREE.Vector3(...(l ?? [0, 1, 0]))), fov };
+  },
+  /** Contrôles de posture de Joseph sur la moto (repère local de la moto, en mètres). */
+  josephCheck() {
+    const rig = world.josephRig; const F = { barY: 1.0, barZ: -0.6, gripX: 0.335, gripR: 0.021, seat: 0.79 };
+    const gripDist = (h: THREE.Vector3, side: number) => {
+      const along = Math.abs(h.x - side * F.gripX);
+      const radial = Math.hypot(h.y - F.barY, h.z - F.barZ);
+      return { horsPoignee: +Math.max(0, along - 0.06).toFixed(3), distanceAxe: +radial.toFixed(3), contact: along <= 0.06 && radial <= F.gripR + 0.05 };
+    };
+    const motoBoxes: Record<string, THREE.Box3> = {
+      cadre: new THREE.Box3(new THREE.Vector3(-0.11, 0.42, -0.5), new THREE.Vector3(0.11, 0.68, 0.5)),
+      reservoir: new THREE.Box3(new THREE.Vector3(-0.15, 0.62, -0.43), new THREE.Vector3(0.15, 0.82, -0.01)),
+      roueAvant: new THREE.Box3(new THREE.Vector3(-0.08, 0, -0.97), new THREE.Vector3(0.08, 0.65, -0.27)),
+      roueArriere: new THREE.Box3(new THREE.Vector3(-0.08, 0, 0.27), new THREE.Vector3(0.08, 0.65, 0.97)),
+    };
+    const shoes = rig.shoeBoxes();
+    const inv = rig.root.matrixWorld.clone().invert();
+    const knees = ['G', 'D'].map((s) => new THREE.Box3().setFromCenterAndSize(rig.parts['genou' + s].getWorldPosition(new THREE.Vector3()).applyMatrix4(inv), new THREE.Vector3(0.12, 0.12, 0.12)));
+    const hits: string[] = [];
+    [...shoes.map((b, i) => ['chaussure ' + (i ? 'D' : 'G'), b] as const), ...knees.map((b, i) => ['genou ' + (i ? 'D' : 'G'), b] as const)].forEach(([n, b]) => {
+      for (const [k, mb] of Object.entries(motoBoxes)) if (b.intersectsBox(mb)) hits.push(n + ' × ' + k);
+    });
+    const pegTop = 0.36 + 0.016;
+    return {
+      mainGauche: gripDist(rig.contacts.handL, -1), mainDroite: gripDist(rig.contacts.handR, 1),
+      bassin: { basDuBassin: +rig.contacts.pelvisBottom.toFixed(3), dessusSelle: F.seat, ecart: +(rig.contacts.pelvisBottom - F.seat).toFixed(3) },
+      pieds: shoes.map((b, i) => ({ cote: i ? 'D' : 'G', semelle: +b.min.y.toFixed(3), dessusReposePied: pegTop, ecart: +(b.min.y - pegTop).toFixed(3) })),
+      intersections: hits,
+    };
+  },
   /** Projection écran (px) d'un point du monde, avec la caméra courante. */
   project(x: number, y: number, z: number) {
     const v = new THREE.Vector3(x, y, z).project(camera);

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#13213c" />
+  <title>8 h 00 — Le piège de la Marina</title>
+  <meta name="description" content="Jeu de prévention routière en 3D : un carrefour fictif inspiré du boulevard de la Marina, à Cotonou." />
+</head>
+<body>
+  <a class="skip" href="#actions">Aller aux commandes</a>
+  <div id="stage" aria-hidden="true"></div>
+  <div id="flash" aria-hidden="true"></div>
+  <div id="labels" aria-hidden="true"></div>
+
+  <header class="top">
+    <button id="btn-back" class="icon-btn" type="button" aria-label="Retour à l’étape précédente" title="Retour (touche Retour arrière)"></button>
+    <div class="step" aria-live="polite">
+      <span class="step-num" id="step-num">01</span>
+      <h1 class="step-title" id="step-title">Le retard</h1>
+    </div>
+    <div class="top-right">
+      <span class="clock" id="clock" aria-label="Heure dans le récit">7 h 52</span>
+      <button id="btn-sources" class="icon-btn labelled" type="button" aria-haspopup="dialog"><span class="i"></span><span class="t">Sources</span></button>
+      <button id="btn-settings" class="icon-btn labelled" type="button" aria-haspopup="dialog"><span class="i"></span><span class="t">Réglages</span></button>
+    </div>
+  </header>
+
+  <ol class="progress" id="progress" aria-label="Progression dans le récit"></ol>
+
+  <aside id="phone" class="phone" hidden>
+    <div class="phone-head"><span class="phone-i"></span><span>Message vocal · Responsable</span><span class="phone-time">7 h 52</span></div>
+    <p class="phone-text"></p>
+    <div class="phone-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </aside>
+
+  <section id="card" class="card" hidden aria-live="polite"></section>
+
+  <footer class="bottom">
+    <div id="subtitle" class="subtitle" aria-live="polite">
+      <span class="who" id="sub-who"></span>
+      <p class="text" id="sub-text"></p>
+      <div class="fon">
+        <button type="button" class="fon-btn" disabled aria-describedby="fon-note"><span class="i"></span>Narration en fon</button>
+        <span id="fon-note">Audio fon à enregistrer et à valider</span>
+      </div>
+    </div>
+    <div id="actions" class="actions" tabindex="-1"></div>
+  </footer>
+
+  <dialog id="dlg-sources" aria-labelledby="dlg-sources-h">
+    <div class="dlg-head"><h2 id="dlg-sources-h">Sources et crédits</h2><button class="close" type="button" data-close aria-label="Fermer">Fermer</button></div>
+    <div class="dlg-body" id="sources-body"></div>
+  </dialog>
+
+  <dialog id="dlg-settings" aria-labelledby="dlg-settings-h">
+    <div class="dlg-head"><h2 id="dlg-settings-h">Réglages</h2><button class="close" type="button" data-close aria-label="Fermer">Fermer</button></div>
+    <div class="dlg-body">
+      <label class="switch"><input type="checkbox" id="opt-reduced" /><span class="track" aria-hidden="true"></span><span>Réduire les mouvements de caméra</span></label>
+      <p class="help">Remplace les travellings par des plans fixes et des coupes franches. Activé par défaut si votre appareil le demande.</p>
+      <h3>Son</h3>
+      <p class="help">Le jeu ne lance aucun son. Toutes les répliques sont sous-titrées : il se joue entièrement sans son.</p>
+      <p class="help"><strong>Narration en fon :</strong> emplacement réservé. Audio fon à enregistrer et à valider par une personne locutrice native avant d’être activé.</p>
+      <h3>Clavier</h3>
+      <dl class="keys">
+        <dt><kbd>Tab</kbd></dt><dd>Passer d’une commande à l’autre</dd>
+        <dt><kbd>Entrée</kbd> / <kbd>Espace</kbd></dt><dd>Activer la commande sélectionnée</dd>
+        <dt><kbd>1</kbd> / <kbd>2</kbd></dt><dd>Choisir la première ou la seconde réponse</dd>
+        <dt><kbd>N</kbd></dt><dd>Action principale (Suivant, Continuer…)</dd>
+        <dt><kbd>Retour arrière</kbd></dt><dd>Revenir à l’étape précédente</dd>
+        <dt><kbd>M</kbd></dt><dd>Réduire / rétablir les mouvements de caméra</dd>
+        <dt><kbd>Échap</kbd></dt><dd>Fermer une fenêtre</dd>
+      </dl>
+    </div>
+  </dialog>
+
+  <noscript>Ce jeu nécessite JavaScript et WebGL.</noscript>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

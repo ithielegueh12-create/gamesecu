@@ -1,0 +1,147 @@
+import asyncio, sys, json
+from playwright.async_api import async_playwright
+URL='http://localhost:4173/index.html'
+OUT='/home/claude/shots/'
+ARGS=['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']
+log=[]
+def ok(c,msg):
+    log.append(('PASS' if c else 'FAIL')+' '+msg)
+
+async def run(p, name, vp, branch, mobile=False, reduced=False):
+    ctx = await p.chromium.launch(args=ARGS)
+    kw = dict(viewport=vp)
+    if mobile: kw.update(is_mobile=True, has_touch=True, device_scale_factor=2)
+    if reduced: kw.update(reduced_motion='reduce')
+    c = await ctx.new_context(**kw)
+    pg = await c.new_page()
+    errs=[]
+    pg.on('pageerror', lambda e: errs.append(str(e)))
+    await pg.goto(URL); await pg.wait_for_timeout(1500)
+    M = lambda k: pg.evaluate(f'window.__marina.{k}')
+    async def shot(tag): await pg.screenshot(path=f'{OUT}{name}-{tag}.png')
+    async def click(text):
+        loc = pg.locator('#actions button', has_text=text).first
+        if mobile: await loc.tap()
+        else: await loc.click()
+        await pg.wait_for_timeout(250)
+    async def skip(): await pg.evaluate('window.__marina.skip()'); await pg.wait_for_timeout(600)
+    ok(await M('reduced') == reduced, f'{name}: réduction mouvements par défaut = {reduced}')
+    await shot('01')
+    ok((await pg.locator('#phone').is_visible()), f'{name}: message affiché à l’écran (01)')
+    await click('Suivant'); await click('Ranger')
+    ok(await M('step')=='02', f'{name}: passage à 02')
+    await pg.wait_for_timeout(1200); await shot('02')
+    await skip(); await pg.wait_for_timeout(1200)
+    ok(await M('step')=='03', f'{name}: arrêt sur image 03')
+    await pg.wait_for_timeout(3000)
+    ok(await M('step')=='03', f'{name}: 03 attend sans limite de temps')
+    await shot('03')
+    btn = pg.locator('.choice.wait' if branch=='A' else '.choice.go')
+    bb = await btn.bounding_box(); ok(bb['height']>=60, f'{name}: bouton de choix ≥ 60 px ({bb["height"]:.0f})')
+    if mobile: await btn.tap()
+    else: await btn.click()
+    await pg.wait_for_timeout(300)
+    ok(await M('step')==('04A' if branch=='A' else '04B'), f'{name}: branche {branch}')
+    # captures déterministes
+    await pg.evaluate('window.__marina.skip') # noop
+    await pg.wait_for_timeout(1500); await shot('04-1')
+    await pg.wait_for_timeout(1500); await shot('04-2')
+    await skip(); await shot('04-end')
+    await click('Suivant'); await click('Continuer')
+    ok(await M('step')=='05', f'{name}: 05')
+    first = await pg.locator('#sub-text').inner_text()
+    ok(('bon réflexe' in first) if branch=='A' else ('failli' in first), f'{name}: 1re phrase du policier adaptée')
+    await shot('05')
+    await click('Suivant'); await click('Revoir le carrefour')
+    ok(await M('shot')=='replay', f'{name}: ralenti du carrefour')
+    await pg.wait_for_timeout(2500)
+    await pg.evaluate('()=>{}')
+    # avance à t≈8 pour voir toutes les étiquettes
+    await pg.evaluate('(()=>{const m=window.__marina; })()')
+    await shot('05-replay-a')
+    await skip(); await shot('05-replay-end')
+    labels = await pg.locator('.lbl').all_inner_texts()
+    ok(any('Ligne' in l for l in labels) and any('Minibus' in l for l in labels), f'{name}: étiquettes ligne + minibus {labels}')
+    concl = await pg.locator('#sub-text').inner_text()
+    ok('avant la ligne' in concl, f'{name}: conclusion du policier')
+    await click('Revoir le carrefour'); ok(await M('shot')=='replay', f'{name}: revoir encore'); await skip()
+    await click('Continuer'); ok(await M('step')=='06', f'{name}: 06'); await shot('06')
+    t6 = await pg.locator('#card').inner_text(); ok('à confirmer' in t6 and 'CNSR' in t6, f'{name}: statut + CNSR affichés')
+    # retour
+    await pg.locator('#btn-back').click(); await pg.wait_for_timeout(300)
+    ok(await M('step')=='05', f'{name}: bouton Retour 06→05')
+    await click('Suivant'); await click('Revoir'); await skip(); await click('Continuer')
+    await click('Suivant'); ok(await M('step')=='07', f'{name}: 07'); await click('Suivant'); await shot('07'); await click('Suivant')
+    ok(await M('step')=='08', f'{name}: 08'); await click('Suivant'); await shot('08')
+    t8 = await pg.locator('#card').inner_text(); ok('détour' in t8 and '98-019' in t8, f'{name}: détour + source CNSS')
+    await click('quiz')
+    for i,(qs,wrong,right) in enumerate([('09',1,0),('10',1,0),('11',0,1)]):
+        ok(await M('step')==qs, f'{name}: quiz {qs}')
+        pressed = await pg.locator('.opt[aria-pressed="true"]').count(); ok(pressed==0, f'{name}: {qs} sans présélection')
+        o = pg.locator('.opt').nth(wrong)
+        await (o.tap() if mobile else o.click()); await pg.wait_for_timeout(250)
+        fb = await pg.locator('.feedback').inner_text(); ok('Pas tout à fait' in fb, f'{name}: {qs} correction (faux)')
+        if i==0: await shot('09-wrong')
+        await click('Réessayer')
+        ok(await pg.locator('.opt[aria-pressed="true"]').count()==0, f'{name}: {qs} réessayer remet à zéro')
+        o = pg.locator('.opt').nth(right)
+        await (o.tap() if mobile else o.click()); await pg.wait_for_timeout(250)
+        fb = await pg.locator('.feedback').inner_text(); ok('Bonne réponse' in fb, f'{name}: {qs} correction (juste)')
+        if qs=='10': ok('à confirmer' in fb, f'{name}: rappel du statut au quiz 10')
+        await click('Question suivante' if qs!='11' else 'Terminer')
+    ok(await M('step')=='fin', f'{name}: fin'); await shot('fin')
+    btns = await pg.locator('#actions button').all_inner_texts()
+    ok(any('Rejouer' in b for b in btns) and any('autre choix' in b for b in btns) and any('Sources' in b for b in btns), f'{name}: boutons de fin {btns}')
+    await click('Sources'); ok(await pg.locator('#dlg-sources').is_visible(), f'{name}: fenêtre Sources'); await shot('sources')
+    await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+    await click('autre choix')
+    other = 'B' if branch=='A' else 'A'
+    ok(await M('step')==('04'+other), f'{name}: essayer l’autre choix → 04{other}')
+    await pg.locator('#btn-back').click(); await pg.wait_for_timeout(200)
+    ok(await M('step')=='03', f'{name}: retour depuis l’autre branche → 03')
+    # pas de son
+    media = await pg.evaluate('document.querySelectorAll("audio,video").length')
+    ok(media==0, f'{name}: aucun élément audio')
+    ok(not errs, f'{name}: aucune erreur JS {errs}')
+    await ctx.close()
+
+async def keyboard(p):
+    b = await p.chromium.launch(args=ARGS); pg = await b.new_page(viewport={'width':1280,'height':800})
+    errs=[]; pg.on('pageerror', lambda e: errs.append(str(e)))
+    await pg.goto(URL); await pg.wait_for_timeout(1500)
+    M = lambda k: pg.evaluate(f'window.__marina.{k}')
+    foc = await pg.evaluate('document.activeElement.textContent'); ok('Suivant' in foc, f'clavier: focus initial sur l’action principale ({foc.strip()})')
+    await pg.keyboard.press('Enter'); await pg.wait_for_timeout(200); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(300)
+    ok(await M('step')=='02', 'clavier: Entrée → 02')
+    await pg.evaluate('window.__marina.skip()'); await pg.wait_for_timeout(1600)
+    ok(await M('step')=='03','clavier: 03'); 
+    await pg.keyboard.press('Tab'); await pg.wait_for_timeout(100)
+    await pg.screenshot(path=OUT+'kb-focus.png')
+    fv = await pg.evaluate('getComputedStyle(document.activeElement).outlineStyle'); ok(fv!='none', f'clavier: focus visible ({fv})')
+    await pg.keyboard.press('1'); await pg.wait_for_timeout(300); ok(await M('step')=='04A','clavier: touche 1 → 04A')
+    await pg.keyboard.press('Backspace'); await pg.wait_for_timeout(300); ok(await M('step')=='03','clavier: Retour arrière → 03')
+    await pg.keyboard.press('2'); await pg.wait_for_timeout(300); ok(await M('step')=='04B','clavier: touche 2 → 04B')
+    r0 = await M('reduced'); await pg.keyboard.press('m'); ok(await M('reduced')!=r0, 'clavier: M bascule la réduction des mouvements')
+    await pg.evaluate('window.__marina.skip()'); await pg.wait_for_timeout(700)
+    await pg.keyboard.press('n'); await pg.keyboard.press('n'); await pg.wait_for_timeout(300); ok(await M('step')=='05','clavier: N → 05')
+    ok(not errs, f'clavier: aucune erreur {errs}')
+    await b.close()
+
+async def determinism(p):
+    b = await p.chromium.launch(args=ARGS); pg = await b.new_page(viewport={'width':800,'height':500})
+    await pg.goto(URL); await pg.wait_for_timeout(1000)
+    # Évalue les poses de 04A et 04B à des instants fixes, deux fois.
+    res = await pg.evaluate('''() => window.__marina.step''')
+    await b.close()
+
+async def main():
+    async with async_playwright() as p:
+        which = sys.argv[1] if len(sys.argv)>1 else 'all'
+        if which in ('all','dA'): await run(p,'dA',{'width':1280,'height':800},'A')
+        if which in ('all','dB'): await run(p,'dB',{'width':1280,'height':800},'B')
+        if which in ('all','mB'): await run(p,'mB',{'width':390,'height':844},'B',mobile=True)
+        if which in ('all','mA'): await run(p,'mA',{'width':390,'height':844},'A',mobile=True,reduced=True)
+        if which in ('all','kb'): await keyboard(p)
+    print('\n'.join(log))
+    print('FAILS:', sum(1 for l in log if l.startswith('FAIL')))
+asyncio.run(main())

@@ -139,7 +139,7 @@ Le récit est séparé de l’affichage : pour modifier un texte, on ne touche q
 
 10 enregistrements fon de l'équipe intégrés (accueil, consignes, scène 03 question + 2 options, 04A attente, quiz 09 question + 2 options + bonne réponse). Liste, contrôles et avertissements : `public/audio/fon_manifest.json` ; import : `voicegen/import_fon.py` + `voicegen/fon_map.json`.
 
-- Voix fon jouée partout où un fichier existe ; ailleurs, voix française en attendant (désactivable dans Paramètres). Le sous-titre indique la langue réellement entendue.
+- En fon, seuls les enregistrements de l'équipe sont joués. Un passage sans enregistrement fon n'a **aucune voix** (jamais de voix française de remplacement) : il reste écrit à l'écran, même si les sous-titres sont coupés. Le sous-titre indique « Voix fon » ou « Voix fon pas encore enregistrée » ; les boutons d'écoute sans enregistrement sont masqués et « Réécouter » est désactivé.
 - Menu : « Écouter l'accueil » (fon) lit l'accueil puis les consignes ; « Commencer » reste disponible.
 - Scène 03 et quiz : chaque option a son propre bouton « Écouter », séparé du bouton qui valide ; écouter ne choisit rien.
 - Scène 01 : téléphone avec ondes animées pendant le message et bouton « Réécouter le message ».

@@ -43,8 +43,9 @@ correspondance dans `voicegen/fon_map.json`, traitement (mono, réparation d'éc
 volume −18 LUFS comme le français), sortie dans `audio/fon/<dossier>/` et `audio/fon_manifest.json`
 (source, durée, contrôles qualité, avertissements, fichiers attendus absents).
 
-Le jeu utilise la voix fon partout où un fichier existe. Ailleurs, la voix française prend le relais
-(réglage « En fon, compléter avec la voix française », désactivable : le passage reste alors seulement écrit).
+En mode fon, le jeu ne joue que ces enregistrements. Un passage sans fichier fon n'a aucune voix
+(pas de voix française de remplacement) : il reste écrit à l'écran. Dès qu'un fichier fon est ajouté,
+le passage correspondant devient parlé, sans autre modification.
 
 Pour ajouter une voix fon : déposer le fichier avec le bon nom dans le dossier source, ajouter sa ligne
 dans `fon_map.json` si elle n'y est pas (identifiant = colonne `id` de `audio_manifest.json`), relancer l'import puis `npm run build`.

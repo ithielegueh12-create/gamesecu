@@ -141,13 +141,19 @@ voiceBtn.querySelector('.i')!.innerHTML = ICON.speaker;
 voiceBtn.addEventListener('click', () => voice.replay());
 function updateListen() {
   const l: Lang = lang ?? 'fr';
-  listenBtn.disabled = voice.last.length === 0;
   listenBtn.classList.toggle('speaking', voice.speaking);
-  voiceBtn.disabled = voice.last.length === 0; voiceBtn.classList.toggle('speaking', voice.speaking);
+  voiceBtn.classList.toggle('speaking', voice.speaking);
   voiceBtn.setAttribute('aria-label', voice.speaking ? 'Voix en cours — relancer depuis le début' : 'Réécouter la dernière intervention');
   $('listen-label').textContent = voice.speaking ? 'En cours…' : 'Réécouter';
-  const cl = voice.currentLang;
-  $('fon-note').textContent = l !== 'fon' ? '' : cl === 'fon' ? 'Voix fon' : cl === 'fr' ? MISSING_AUDIO.fon : (currentLine && !hasFon(lineVoiceId(currentLine)) ? 'Voix fon pas encore enregistrée' : '');
+  const lineVoiced = !!currentLine && voice.playable([lineVoiceId(currentLine)]);
+  $('fon-note').textContent = l === 'fon' && currentLine ? (lineVoiced ? 'Voix fon' : MISSING_AUDIO.fon) : '';
+  ui.sub.classList.toggle('no-voice', !!currentLine && !lineVoiced);
+  // Réécouter : seulement s'il existe vraiment une voix dans la langue choisie
+  const canReplay = voice.last.length > 0 && voice.playable(voice.last);
+  listenBtn.disabled = !canReplay; voiceBtn.disabled = !canReplay;
+  // boutons d'écoute ponctuels : masqués quand rien n'est enregistré dans cette langue (pas de bouton muet)
+  document.querySelectorAll<HTMLButtonElement>('[data-listen]').forEach((b) => { b.hidden = !voice.playable([b.dataset.listen]); });
+  phoneReplay.hidden = !voice.playable([MSG_ID]);
   ui.phone.classList.toggle('playing', voice.current === MSG_ID && voice.speaking);
 }
 voice.onChange = updateListen;
@@ -179,11 +185,11 @@ function say(line: Line | null, rule = false, extra: string[] = []) {
   currentLine = line;
   if (!line) { voice.stop(); ui.sub.hidden = true; updateListen(); return; }
   if (!same) voice.speak([lineVoiceId(line), ...extra]);
-  updateListen();
   ui.sub.hidden = false;
   ui.sub.className = `subtitle ${line.who}${rule ? ' rule' : ''}`;
   ui.who.textContent = SPEAKER_LABEL[line.who];
   ui.text.textContent = line.text;
+  updateListen();
 }
 
 interface Act { label: string; kind?: 'primary' | 'secondary'; icon?: string; key?: string; run: () => void }
@@ -542,7 +548,7 @@ function setLang(l: Lang) {
   document.querySelectorAll<HTMLButtonElement>('[data-set-lang]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.setLang === l)));
   langGroup.classList.remove('attention');
   langMsg.textContent = l === 'fon'
-    ? `Fon choisi. ${FON_COUNT} passages sont dits en fon ; les autres restent en français en attendant leur enregistrement. Les textes affichés restent en français.`
+    ? `Fon choisi. ${FON_COUNT} passages sont dits en fon ; les autres n’ont pas encore de voix et restent écrits à l’écran (en français).`
     : 'Français choisi.';
   updateListen();
 }
@@ -635,7 +641,8 @@ function renderTuto() {
   $('tuto-art').innerHTML = s.art; $('tuto-h').textContent = s.h; $('tuto-p').textContent = s.p;
   $('tuto-count').textContent = `${tutoIdx + 1} / ${TUTO.length}`;
   document.querySelectorAll('#tuto-dots li').forEach((d, i) => d.classList.toggle('on', i === tutoIdx));
-  $('tuto-listen-t').textContent = l === 'fon' ? 'Réécouter (voix française)' : 'Réécouter';
+  $('tuto-listen-t').textContent = 'Réécouter';
+  $<HTMLButtonElement>('tuto-listen').hidden = !voice.playable([s.voiceId]);
   voice.speak([s.voiceId]);
   $<HTMLButtonElement>('tuto-prev').disabled = tutoIdx === 0;
   $('tuto-next-t').textContent = tutoIdx === TUTO.length - 1 ? 'C’est parti' : 'Suivant';
@@ -675,9 +682,6 @@ $('p-menu').addEventListener('click', () => showMenu());
 // ── Paramètres ───────────────────────────────────────────────
 const optVol = $<HTMLInputElement>('opt-volume'), optSubs = $<HTMLInputElement>('opt-subs'), optVoices = $<HTMLInputElement>('opt-voices');
 optVoices.checked = voice.enabled;
-const optFb = $<HTMLInputElement>('opt-frfallback');
-voice.frFallback = store.get('frfallback') !== '0'; optFb.checked = voice.frFallback;
-optFb.addEventListener('change', () => { voice.frFallback = optFb.checked; store.set('frfallback', optFb.checked ? '1' : '0'); });
 optVoices.addEventListener('change', () => { voice.setEnabled(optVoices.checked); store.set('voices', optVoices.checked ? '1' : '0'); updateListen(); });
 optVol.value = String(Math.round(voice.volume * 100)); $('vol-out').textContent = optVol.value + ' %';
 optVol.addEventListener('input', () => { voice.setVolume(Number(optVol.value) / 100); $('vol-out').textContent = optVol.value + ' %'; store.set('volume', optVol.value); });
@@ -688,7 +692,9 @@ $('opt-replay').addEventListener('click', () => {
   const msg = $('replay-msg');
   if (mode === 'menu' || mode === 'tuto') { ui.dlgSettings.close(); openTuto(() => mStart.focus()); return; }
   if (voice.replay()) { msg.textContent = 'Lecture de la dernière consigne en cours.'; return; }
-  msg.textContent = 'Aucune consigne à réécouter pour l’instant : elle reste affichée en sous-titre.';
+  msg.textContent = lang === 'fon' && voice.last.length
+    ? 'Cette consigne n’a pas encore de voix fon : elle reste affichée en sous-titre.'
+    : 'Aucune consigne à réécouter pour l’instant : elle reste affichée en sous-titre.';
   if (!subs) setSubs(true);
   ui.sub.classList.remove('flash-sub'); void ui.sub.offsetWidth; ui.sub.classList.add('flash-sub');
 });

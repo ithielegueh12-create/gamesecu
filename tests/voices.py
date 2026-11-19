@@ -124,10 +124,12 @@ async def session(p, name, vp, branch, mobile=False):
     # fon : la voix française reste, rien n'est cassé
     await press('[data-set-lang="fon"]'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
     ok(await M('step') == '10', f'{name}: passage en fon sans perte de progression')
-    await press('.opt >> nth=0'); await pg.wait_for_timeout(500)
-    a = await A(); ok(a['id'] == '10-bonne-reponse-01' and '/fr/' in a['src'], f'{name}: en fon, voix française utilisée ({a["src"]})')
-    note = await pg.locator('#fon-note').inner_text(); ok('fon à enregistrer' in note, f'{name}: mention « {note} »')
-    await press('[data-set-lang="fr"]') if await pg.locator('#dlg-settings').is_visible() else None
+    await press('.opt >> nth=0'); await pg.wait_for_timeout(800)
+    a = await A(); ok(not a['speaking'] and a['log'][-1] != '10-bonne-reponse-01', f'{name}: en fon, passage sans voix fon → silence (pas de voix française)')
+    ok(await pg.locator('#btn-voice').is_disabled(), f'{name}: en fon, Réécouter désactivé quand rien n’est enregistré')
+    ok(await pg.locator('.opt-listen:visible').count() == 0, f'{name}: en fon, boutons d’écoute du quiz 10 masqués (pas de voix fon)')
+    await press('#btn-settings'); await press('[data-set-lang="fr"]'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(300)
+    ok(not await pg.locator('#btn-voice').is_disabled() and await pg.locator('.opt-listen:visible').count() == 2, f'{name}: retour au français → Réécouter et boutons d’écoute de nouveau disponibles')
     await act('Question suivante'); await wait_silence(); await press('.opt >> nth=1'); await wait_silence(); await act('Terminer')
     ok(await M('step') == 'fin', f'{name}: fin')
     await playing('fin-a-retenir-01', 'message de fin')

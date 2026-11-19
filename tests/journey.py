@@ -85,7 +85,7 @@ async def journey(p, name, vp, mobile=False):
     ok(await pg.evaluate("document.body.classList.contains('no-subs')"), f'{name}: sous-titres désactivés')
     await press('#opt-replay')
     rm = await pg.locator('#replay-msg').inner_text()
-    ok('Lecture' in rm and (await M('audio'))['speaking'], f'{name}: réécoute des instructions → voix relancée ({rm})')
+    ok('voix fon' in rm and not await pg.evaluate("document.body.classList.contains('no-subs')"), f'{name}: réécoute en fon sans voix fon → consigne réaffichée en sous-titre ({rm})')
     await shot('6-parametres')
     await press('[data-set-lang="fr"]')
     await pg.keyboard.press('Escape'); await pg.wait_for_timeout(300)

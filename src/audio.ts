@@ -2,10 +2,10 @@
 // Langues et voix.
 // Français : voix produites (public/audio/fr/…, listées dans
 // public/audio/audio_manifest.json, générées par voicegen/generate.py).
-// Fon : aucun enregistrement. Rien n'est traduit ni fabriqué. Quand des voix
-// fon validées par une personne locutrice native existeront, il suffira de
-// remplir FON_FILES (même identifiant → fichier dans public/audio/fon/).
-// En attendant, en mode fon, la voix française est utilisée et l'écran le dit.
+// Fon : uniquement les enregistrements fournis par l'équipe (public/audio/fon/…,
+// listés dans public/audio/fon_manifest.json, importés par voicegen/import_fon.py).
+// Rien n'est traduit ni fabriqué. En mode fon, un passage sans enregistrement fon
+// reste sans voix : jamais de voix française de remplacement.
 // ─────────────────────────────────────────────────────────────
 import manifest from '../public/audio/audio_manifest.json';
 import fonManifest from '../public/audio/fon_manifest.json';
@@ -32,16 +32,17 @@ export const FON_COUNT = FON.size;
 /** Mention affichée quand une langue n'a pas sa propre voix. */
 export const MISSING_AUDIO: Record<Lang, string> = {
   fr: 'Audio français indisponible',
-  fon: 'Voix fon pas encore enregistrée · voix française en attendant',
+  fon: 'Voix fon pas encore enregistrée',
 };
 
 export interface Resolved { id: string; src: string; duration: number; lang: Lang }
 /** Fichier à lire pour un identifiant, dans la langue demandée (repli sur le français). */
-export function resolveVoice(id: string, lang: Lang, frFallback = true): Resolved | null {
+export function resolveVoice(id: string, lang: Lang): Resolved | null {
+  if (lang === 'fon') {
+    const fon = FON.get(id);
+    return fon ? { id, src: './' + fon.path, duration: fon.duration, lang: 'fon' } : null; // pas de repli français
+  }
   const fr = FR.get(id);
-  const fon = FON.get(id);
-  if (lang === 'fon' && fon) return { id, src: './' + fon.path, duration: fon.duration, lang: 'fon' };
-  if (lang === 'fon' && !frFallback) return null;
   return fr ? { id, src: './' + fr.path, duration: fr.duration, lang: 'fr' } : null;
 }
 export const hasVoice = (id: string | null | undefined) => !!id && FR.has(id);
@@ -60,14 +61,12 @@ export class Voice {
   volume = 0.8;
   enabled = true;
   lang: Lang = 'fr';
-  /** En fon : compléter les passages non enregistrés avec la voix française. */
-  frFallback = true;
   /** Dernière suite lancée (pour « Réécouter »). */
   last: string[] = [];
   /** Journal des identifiants lancés (tests). */
   log: string[] = [];
   /** Historique détaillé : début, fin, fin naturelle ou interruption (tests de chevauchement). */
-  hist: { id: string; start: number; end: number | null; how: 'fin' | 'coupé' | 'erreur' | null }[] = [];
+  hist: { id: string; lang: Lang; start: number; end: number | null; how: 'fin' | 'coupé' | 'erreur' | null }[] = [];
   private close(how: 'fin' | 'coupé' | 'erreur') { const h = this.hist[this.hist.length - 1]; if (h && h.end === null) { h.end = performance.now(); h.how = how; } }
   onChange: (() => void) | null = null;
 
@@ -83,17 +82,20 @@ export class Voice {
     this.last = list;
     if (!this.enabled && !manual) { this.stop(); return false; }
     this.stop();
-    this.queue = list.map((id) => resolveVoice(id, this.lang, this.frFallback)).filter((x): x is Resolved => !!x);
+    this.queue = list.map((id) => resolveVoice(id, this.lang)).filter((x): x is Resolved => !!x);
+    if (!this.queue.length) { this.onChange?.(); return false; } // rien d'enregistré dans cette langue : silence
     this.next();
     return true;
   }
   replay() { return this.speak(this.last, true); }
+  /** Au moins une de ces interventions a-t-elle une voix dans la langue courante ? */
+  playable(ids: (string | null | undefined)[]) { return ids.some((id) => !!id && !!resolveVoice(id, this.lang)); }
   private next() {
     const r = this.queue.shift() ?? null;
     this.cur = r; const my = ++this.seq;
     if (!r) { this.onChange?.(); return; }
     this.el.src = r.src; this.el.volume = this.volume;
-    this.startedAt = performance.now(); this.log.push(r.id); this.hist.push({ id: r.id, start: this.startedAt, end: null, how: null });
+    this.startedAt = performance.now(); this.log.push(r.id); this.hist.push({ id: r.id, lang: r.lang, start: this.startedAt, end: null, how: null });
     this.el.play().catch(() => { if (my === this.seq) { this.cur = null; this.queue = []; this.onChange?.(); } });
     this.onChange?.();
   }

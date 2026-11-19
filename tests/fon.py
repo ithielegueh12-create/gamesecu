@@ -46,12 +46,15 @@ async def session(p, name, vp, mobile=False):
     await pg.screenshot(path=f'{OUT}{name}-menu.png')
     # 01 : message du responsable — pas de fichier fon fourni → français
     await press('#m-start'); ok(await M('step') == '01', f'{name}: 01')
-    await plays('01-responsable-01', 'fr', 'message vocal (01_retard absent → repli français)')
-    note = await pg.locator('#fon-note').inner_text(); ok('voix française' in note, f'{name}: mention du repli « {note} »')
-    ok(await pg.locator('#phone').is_visible(), f'{name}: téléphone affiché avec le message')
-    ok(await pg.locator('#phone.playing').count() == 1, f'{name}: ondes du téléphone animées pendant le message')
-    await silence(); await press('#phone-replay'); await plays('01-responsable-01', 'fr', 'bouton « Réécouter le message »')
-    bb = await pg.locator('#phone-replay').bounding_box(); ok(bb['height'] >= 44, f'{name}: bouton du téléphone ≥ 44 px')
+    await pg.wait_for_timeout(1500); a = await A()
+    ok(not a['speaking'] and not [h for h in a['hist'] if h['id'].startswith('01')], f'{name}: 01 (01_retard non fourni) → aucune voix, pas de français')
+    note = await pg.locator('#fon-note').inner_text(); ok(note == 'Voix fon pas encore enregistrée', f'{name}: mention « {note} »')
+    ok(await pg.locator('#phone').is_visible(), f'{name}: téléphone affiché avec le message écrit')
+    ok(await pg.locator('#phone-replay').is_hidden(), f'{name}: « Réécouter le message » masqué tant que 01_retard manque')
+    ok(await pg.locator('#btn-voice').is_disabled() and await pg.locator('#btn-listen').is_disabled(), f'{name}: Réécouter désactivé (rien d’enregistré en fon)')
+    await press('#btn-settings'); await press('label:has(#opt-subs)'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+    ok(await pg.locator('#sub-text').is_visible(), f'{name}: sous-titres coupés → le texte d’un passage sans voix reste affiché')
+    await press('#btn-settings'); await press('label:has(#opt-subs)'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
     await pg.screenshot(path=f'{OUT}{name}-01.png')
     await pg.evaluate('window.__marina.skip()'); await act('Suivant'); await act('Ranger')
     await pg.evaluate('window.__marina.skip()'); await pg.wait_for_timeout(1500)
@@ -69,17 +72,12 @@ async def session(p, name, vp, mobile=False):
     await press('.choice.wait')
     ok(await M('step') == '04A', f'{name}: appui sur « J’attends le vert » → 04A')
     await plays('04a-narratrice-01', 'fon', '04A attente')
-    await silence()
-    for _ in range(20):
-        h = (await A())['hist']; nxt = [x['id'] for x in h if x['id'].startswith('04a')]
-        if len(nxt) >= 2: break
-        await pg.wait_for_timeout(250)
-    ok(len(nxt) >= 2 and nxt[1] == '04a-narratrice-02', f'{name}: suite de 04A en français (repli) {nxt[:3]}')
-    # repli désactivé
-    await press('#btn-settings'); await press('label:has(#opt-frfallback)'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
-    n0 = len((await A())['log']); await pg.evaluate('window.__marina.skip()'); await pg.wait_for_timeout(1200)
-    lg = (await A())['log'][n0:]; ok(not any(i.startswith('04a') and i != '04a-narratrice-01' for i in lg), f'{name}: repli désactivé → passages sans voix fon restent muets {lg}')
-    await press('#btn-settings'); await press('label:has(#opt-frfallback)'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+    await silence(); await pg.wait_for_timeout(3500)
+    nxt = [x['id'] for x in (await A())['hist'] if x['id'].startswith('04a')]
+    sub = await pg.locator('#sub-text').inner_text()
+    ok(nxt == ['04a-narratrice-01'], f'{name}: suite de 04A sans voix fon → silence, aucune voix française {nxt}')
+    ok(bool(sub) and 'arrête avant la ligne' not in sub, f'{name}: la suite de 04A reste écrite à l’écran (« {sub[:45]}… »)')
+    await pg.evaluate('window.__marina.skip()'); await pg.wait_for_timeout(1200)
     # aller au quiz
     for _ in range(40):
         st = await M('step')
@@ -93,8 +91,11 @@ async def session(p, name, vp, mobile=False):
     await press('.opt-row:nth-child(2) .opt-listen'); await plays('09-option-02', 'fon', 'écouter une réponse du quiz')
     ok(await pg.locator('.opt[aria-pressed="true"]').count() == 0, f'{name}: écouter une réponse ne la sélectionne pas')
     await pg.screenshot(path=f'{OUT}{name}-09.png')
-    await press('.opt >> nth=1'); await plays('09-mauvaise-reponse-01', 'fr', 'mauvaise réponse (pas de fichier fon → français)')
+    await press('.opt >> nth=1'); await pg.wait_for_timeout(1000); a = await A()
+    ok(not a['speaking'] and '09-mauvaise-reponse-01' not in a['log'], f'{name}: mauvaise réponse (pas de voix fon) → silence, pas de français')
     await act('Réessayer'); await press('.opt >> nth=0'); await plays('09-bonne-reponse-01', 'fon', 'bonne réponse')
+    h = (await A())['hist']; fr_in_fon = [x['id'] for x in h if x['lang'] != 'fon']
+    ok(not fr_in_fon, f'{name}: en fon, {len(h)} voix jouées, toutes en fon — aucune voix française {fr_in_fon}')
     # retour au français : les voix françaises reviennent, progression intacte
     await press('#btn-settings'); await press('[data-set-lang="fr"]'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
     ok(await M('step') == '09', f'{name}: retour au français sans perdre la progression')

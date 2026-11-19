@@ -1,12 +1,13 @@
 // ─────────────────────────────────────────────────────────────
-// Langue et audio.
-// Deux langues prévues : français et fon. Aucun enregistrement n'est encore
-// fourni : chaque emplacement vaut `null` tant qu'un fichier réel n'a pas été
-// déposé dans public/audio/<langue>/ et, pour le fon, validé par une personne
-// locutrice native. Aucune traduction fon n'est fabriquée : l'interface et les
-// sous-titres restent en français.
-// Le jeu ne lance jamais de son tout seul : un son ne part qu'après un appui.
+// Langues et voix.
+// Français : voix produites (public/audio/fr/…, listées dans
+// public/audio/audio_manifest.json, générées par voicegen/generate.py).
+// Fon : aucun enregistrement. Rien n'est traduit ni fabriqué. Quand des voix
+// fon validées par une personne locutrice native existeront, il suffira de
+// remplir FON_FILES (même identifiant → fichier dans public/audio/fon/).
+// En attendant, en mode fon, la voix française est utilisée et l'écran le dit.
 // ─────────────────────────────────────────────────────────────
+import manifest from '../public/audio/audio_manifest.json';
 
 export type Lang = 'fr' | 'fon';
 
@@ -14,47 +15,94 @@ export const LANG_LABEL: Record<Lang, string> = { fr: 'Français', fon: 'Fon' };
 /** Code de langue pour l'attribut lang du document (ISO 639-3 pour le fon). */
 export const LANG_CODE: Record<Lang, string> = { fr: 'fr', fon: 'fon' };
 
-/** Emplacements audio de l'interface (chemins relatifs à public/audio/). */
-export type AudioKey = 'exemple' | 'tuto-ecouter' | 'tuto-choisir' | 'tuto-continuer';
+interface ManifestItem { id: string; character: string; voice: string; scene: string; text: string; path: string; duration: number }
+const FR = new Map<string, ManifestItem>((manifest.items as ManifestItem[]).map((i) => [i.id, i]));
 
-export const AUDIO_FILES: Record<Lang, Record<AudioKey, string | null>> = {
-  // Remplacer null par le nom du fichier une fois l'enregistrement déposé, ex. 'fr/exemple.mp3'.
-  fr: { exemple: null, 'tuto-ecouter': null, 'tuto-choisir': null, 'tuto-continuer': null },
-  fon: { exemple: null, 'tuto-ecouter': null, 'tuto-choisir': null, 'tuto-continuer': null },
-};
+/** Voix fon validées : identifiant du script → chemin relatif (ex. 'audio/fon/narrator/01-narratrice-01.mp3'). Vide pour l'instant. */
+export const FON_FILES: Record<string, string> = {};
 
-/** Transcriptions de référence en français (textes à enregistrer). */
-export const AUDIO_SCRIPT: Record<AudioKey, string> = {
-  exemple: 'Bonjour. Tu vas suivre Joseph, un matin, au carrefour de la Marina.',
-  'tuto-ecouter': 'Appuie sur le haut-parleur pour écouter la consigne.',
-  'tuto-choisir': 'Touche une des deux réponses pour choisir.',
-  'tuto-continuer': 'Appuie sur la flèche pour continuer.',
-};
-
-/** Texte affiché quand un enregistrement n'est pas encore disponible. */
+/** Mention affichée quand une langue n'a pas sa propre voix. */
 export const MISSING_AUDIO: Record<Lang, string> = {
-  fr: 'Audio français à enregistrer',
-  fon: 'Audio fon à enregistrer et à valider',
+  fr: 'Audio français indisponible',
+  fon: 'Voix fon à enregistrer et à valider · voix française en attendant',
 };
 
-const BASE = './audio/';
+export interface Resolved { id: string; src: string; duration: number; lang: Lang }
+/** Fichier à lire pour un identifiant, dans la langue demandée (repli sur le français). */
+export function resolveVoice(id: string, lang: Lang): Resolved | null {
+  const fr = FR.get(id);
+  if (lang === 'fon' && FON_FILES[id]) return { id, src: './' + FON_FILES[id], duration: fr?.duration ?? 4, lang: 'fon' };
+  return fr ? { id, src: './' + fr.path, duration: fr.duration, lang: 'fr' } : null;
+}
+export const hasVoice = (id: string | null | undefined) => !!id && FR.has(id);
 
-/** Lecteur unique : un seul son à la fois, volume réglable, jamais automatique. */
+/**
+ * Lecteur unique : une seule voix à la fois. Chaque nouvelle intervention
+ * arrête la précédente ; une suite d'interventions (réplique puis fiche, question
+ * puis réponses) est lue dans l'ordre.
+ */
 export class Voice {
   private el = new Audio();
+  private queue: Resolved[] = [];
+  private cur: Resolved | null = null;
+  private startedAt = 0;
+  private seq = 0;
   volume = 0.8;
-  constructor() { this.el.preload = 'none'; }
-  /** Renvoie false si aucun enregistrement n'existe pour cet emplacement. */
-  play(file: string | null | undefined): boolean {
-    if (!file) return false;
-    this.el.pause();
-    this.el.src = BASE + file;
-    this.el.volume = this.volume;
-    this.el.play().catch(() => { /* fichier manquant ou lecture refusée */ });
+  enabled = true;
+  lang: Lang = 'fr';
+  /** Dernière suite lancée (pour « Réécouter »). */
+  last: string[] = [];
+  /** Journal des identifiants lancés (tests). */
+  log: string[] = [];
+  /** Historique détaillé : début, fin, fin naturelle ou interruption (tests de chevauchement). */
+  hist: { id: string; start: number; end: number | null; how: 'fin' | 'coupé' | 'erreur' | null }[] = [];
+  private close(how: 'fin' | 'coupé' | 'erreur') { const h = this.hist[this.hist.length - 1]; if (h && h.end === null) { h.end = performance.now(); h.how = how; } }
+  onChange: (() => void) | null = null;
+
+  constructor() {
+    this.el.preload = 'auto';
+    this.el.addEventListener('ended', () => { this.close('fin'); this.next(); });
+    this.el.addEventListener('error', () => { if (!this.cur) return; this.close('erreur'); this.next(); });
+  }
+  /** Lance une suite d'interventions. `manual` : demandée par le joueur (lue même si les voix automatiques sont coupées). */
+  speak(ids: (string | null | undefined)[], manual = false): boolean {
+    const list = ids.filter((x): x is string => !!x);
+    if (!list.length) return false;
+    this.last = list;
+    if (!this.enabled && !manual) { this.stop(); return false; }
+    this.stop();
+    this.queue = list.map((id) => resolveVoice(id, this.lang)).filter((x): x is Resolved => !!x);
+    this.next();
     return true;
   }
+  replay() { return this.speak(this.last, true); }
+  private next() {
+    const r = this.queue.shift() ?? null;
+    this.cur = r; const my = ++this.seq;
+    if (!r) { this.onChange?.(); return; }
+    this.el.src = r.src; this.el.volume = this.volume;
+    this.startedAt = performance.now(); this.log.push(r.id); this.hist.push({ id: r.id, start: this.startedAt, end: null, how: null });
+    this.el.play().catch(() => { if (my === this.seq) { this.cur = null; this.queue = []; this.onChange?.(); } });
+    this.onChange?.();
+  }
+  stop() { this.close('coupé'); this.queue = []; this.cur = null; this.seq++; this.el.pause(); this.el.removeAttribute('src'); this.el.load(); this.onChange?.(); }
+  pause() { if (this.cur) this.el.pause(); }
+  resume() { if (this.cur && this.el.paused) this.el.play().catch(() => {}); }
   setVolume(v: number) { this.volume = Math.min(1, Math.max(0, v)); this.el.volume = this.volume; }
-  stop() { this.el.pause(); }
+  setEnabled(v: boolean) { this.enabled = v; if (!v) this.stop(); }
+  /** Une voix est-elle en cours (garde-fou : jamais plus que la durée prévue + 3 s) ? */
+  get speaking() {
+    if (!this.cur) return false;
+    if (performance.now() - this.startedAt > (this.cur.duration + 3) * 1000 && !this.el.paused) return false;
+    return true;
+  }
+  /** Secondes de voix restantes dans la suite en cours. */
+  remaining() {
+    if (!this.speaking || !this.cur) return 0;
+    const curLeft = Math.max(0, (Number.isFinite(this.el.duration) ? this.el.duration : this.cur.duration) - this.el.currentTime);
+    return curLeft + this.queue.reduce((s, r) => s + r.duration, 0);
+  }
+  get current() { return this.cur?.id ?? null; }
+  get currentLang() { return this.cur?.lang ?? null; }
+  get state() { return { id: this.current, src: this.cur?.src ?? null, paused: this.el.paused, speaking: this.speaking, queued: this.queue.map((q) => q.id), volume: this.el.volume, t: this.el.currentTime }; }
 }
-
-export function uiAudio(lang: Lang, key: AudioKey) { return AUDIO_FILES[lang][key]; }

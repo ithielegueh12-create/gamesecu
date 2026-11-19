@@ -104,7 +104,7 @@ async def run(p, name, vp, branch, mobile=False, reduced=False):
     ok(await M('step')=='03', f'{name}: retour depuis l’autre branche → 03')
     # pas de son
     media = await pg.evaluate('document.querySelectorAll("audio,video").length')
-    ok(media==0, f'{name}: aucun élément audio')
+    ok(media==0, f'{name}: aucun lecteur audio/vidéo injecté dans la page (lecteur unique en mémoire)')
     ok(not errs, f'{name}: aucune erreur JS {errs}')
     await ctx.close()
 

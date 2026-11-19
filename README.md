@@ -32,7 +32,7 @@ Le jeu s’ouvre sur un **menu principal** et ne démarre jamais seul. Fond : le
 - **Langue obligatoire** : « Commencer » sans langue met le choix en évidence et affiche « Choisis d’abord ta langue : Français ou Fon. ». La langue est mémorisée et se change dans Paramètres sans relancer la partie.
 - **Progression** : enregistrée à chaque étape (`localStorage`, clé `marina.save` : étape, branche, historique). « Retour au menu » ne l’efface pas ; « Commencer » demande confirmation avant de l’écraser.
 - **Paramètres** (menu et jeu) : Langue · Volume · Réécouter les instructions · Sous-titres activés/désactivés · Réduire les animations.
-- **Audio** : aucun fichier audio n’est livré. Tous les boutons d’écoute sont désactivés avec la mention « Exemple à enregistrer », « Audio français à enregistrer » ou « Audio fon à enregistrer et à valider ». Aucune traduction fon n’a été inventée. Voir `public/audio/LISEZ-MOI.md` pour brancher les enregistrements (`src/audio.ts`, champs `fr`/`fon` de `story.ts`).
+- **Voix** : voir la section « Narration vocale française (v5) ».
 - Aucune connexion, aucun compte.
 
 ## Déroulement
@@ -56,7 +56,7 @@ Le jeu s’ouvre sur un **menu principal** et ne démarre jamais seul. Fond : le
 - Souris / toucher : grands boutons (≥ 52 px, choix de l’étape 03 : 84 px sur ordinateur, 68 px sur téléphone).
 - Clavier : `Tab` pour naviguer, `Entrée`/`Espace` pour activer, flèches dans le choix de langue et le tutoriel, `1`/`2` pour les choix et le quiz, `N` pour l’action principale, `Retour arrière` pour l’étape précédente, `M` pour réduire les mouvements, `Échap` pour la pause (ou fermer une fenêtre). Focus visible (contour jaune + marine).
 - Réglages : « Réduire les mouvements de caméra » (activé d’office si le système le demande) — plans fixes et coupes franches au lieu des travellings.
-- Son : aucun son n’est lancé. Toutes les répliques sont sous-titrées ; le jeu se parcourt entièrement sans son.
+- Voix : les personnages et la narratrice parlent automatiquement (après le premier appui sur « Commencer »). Bouton « Réécouter » dans la barre haute et dans le sous-titre, touche `R`. Volume et « Voix des personnages » (on/off) dans Paramètres. Tout reste sous-titré : le jeu se parcourt aussi sans le son.
 
 ## Décor 3D (version 2 — d'après les 7 références)
 
@@ -112,18 +112,32 @@ src/story.ts   Données du récit : étapes, répliques (avec emplacement `fon`)
 src/shots.ts   Plans de caméra et poses : fonctions pures du temps → les deux branches sont identiques à chaque répétition
 src/world.ts   Décor 3D procédural (carrefour, bâtiments, palmiers, minibus, voiture, motos, personnages, feux, aides du ralenti)
 src/joseph.ts  Joseph, personnage humain articulé (IK bras/jambes, points de contact moto)
-src/audio.ts   Langues, emplacements audio FR/fon (vides), lecteur unique sans lecture automatique
+src/audio.ts   Langues, lecteur de voix unique (file d’attente, une voix à la fois), repli fon → français
+src/voice-script.ts  Script vocal : chaque texte dit, son personnage, sa scène, son identifiant audio
 src/pictos.ts  Pictogrammes, icônes et illustrations du tutoriel (SVG originaux)
 src/main.ts    États Menu / Tutoriel / Jeu / Pause / Fin, étapes, sauvegarde, paramètres, clavier, rendu
-public/audio/  Dossiers fr/ et fon/ prêts à recevoir les enregistrements
+public/audio/  Voix françaises (fr/…) + audio_manifest.json ; dossier fon/ prêt
+voicegen/      Génération des voix (generate.py), contrôle qualité (qc.py)
+scripts/       Export du script vocal pour la génération
 src/style.css  Interface (jetons de couleur, échelle d’espacement 4 px, mobile)
 ```
 
 Le récit est séparé de l’affichage : pour modifier un texte, on ne touche que `story.ts`. Les poses sont calculées à partir du temps de la séquence, sans aléatoire ni physique : 04A et 04B produisent les mêmes images au même instant, d’une partie à l’autre (vérifié par test).
 
+## Narration vocale française (v5)
+
+68 interventions vocalisées : 53 par la narratrice (narration, fiches, consignes, quiz, fin), 11 par le policier, 3 par Joseph, 1 par le responsable (message vocal filtré « téléphone »). Durée totale ≈ 6 min, 3,5 Mo. Liste complète avec texte exact : `public/audio/audio_manifest.json`.
+
+- **Voix de synthèse**, pas des comédiens : moteur Piper (neuronal, hors ligne). Narratrice « siwis » (féminine, posée), Joseph « tom » (masculine, jeune adulte), policier « pierre » (upmc, abaissée d’environ 1,5 demi-ton), responsable « pierre » relevé d’environ 1,5 demi-ton et filtré « téléphone ». Débit mesuré : 144 à 162 mots/min ; volume normalisé −18 LUFS.
+- **Synchronisation** : dans les séquences animées (02, 04A, 04B, ralenti 05), si une phrase n’est pas finie quand la suivante arrive, le temps de la scène ralentit puis attend : aucune phrase coupée, aucune superposition.
+- **Une seule voix à la fois** : chaque nouvelle intervention arrête la précédente (ex. « Suivant » pendant une réplique). La pause met la voix en pause ; le retour au menu la coupe.
+- **Textes inchangés** : la voix lit le texte affiché ; seule la prononciation est aidée (« 8 h » → « 8 heures », « n° » → « numéro », symboles), consignée dans le champ `spoken` du manifeste.
+- **Remplacer par des voix humaines** : déposer un MP3 au même chemin. Régénérer après modification d’un texte : `npm run voice:build` (voir `public/audio/LISEZ-MOI.md`).
+- **Licences** : le modèle « upmc » (policier, responsable) est sous licence CC BY-NC-SA 4.0 (usage non commercial) ; vérifier les fiches des modèles avant une diffusion publique.
+
 ## Narration en fon
 
-Chaque réplique de `story.ts` porte un champ `fon: null`. Un bouton désactivé « Narration en fon » affiche le libellé **« Audio fon à enregistrer et à valider »**. N’y brancher que des pistes enregistrées et validées par une personne locutrice native. Le jeu ne doit jamais lancer de son automatiquement.
+Aucune voix fon et aucune traduction fabriquée. En mode fon, la voix française est utilisée et l’écran affiche **« Voix fon à enregistrer et à valider · voix française en attendant »**. Les voix fon validées par une personne locutrice native se branchent dans `FON_FILES` (`src/audio.ts`), avec les mêmes identifiants que le manifeste ; une entrée absente retombe sur le français.
 
 ## Statut juridique affiché (vérifié le 18 novembre 2026)
 
@@ -148,7 +162,7 @@ Chaque réplique de `story.ts` porte un champ `fon: null`. Un bouton désactivé
 
 - Décor, personnages, véhicules, pictogrammes, interface : créations originales (géométrie procédurale Three.js, SVG).
 - Three.js (MIT), Vite (MIT), TypeScript (Apache-2.0), vite-plugin-singlefile (MIT).
-- Polices système, aucune police téléchargée. Aucun son.
+- Polices système, aucune police téléchargée. Voix de synthèse Piper (voir « Narration vocale française »).
 - Référence d’ambiance (non reproduite) : Kutɔnu Vibes — caméra au niveau de la rue, commandes intégrées à la scène.
 - Photos de référence fournies par l'équipe (non intégrées) ; crédits visibles sur les originaux : AFP (réf. 01), Présidence du Bénin (réf. 07). Les autres images ne portaient pas de crédit visible.
 
@@ -156,7 +170,7 @@ Chaque réplique de `story.ts` porte un champ `fon: null`. Un bouton désactivé
 
 Scripts dans `tests/` (Python + Playwright) : `python3 tests/journey.py [d|t|m]`, `python3 tests/full.py [dA|dB|mA|mB|kb]`, `tests/det.py`.
 
-- **Parcours menu (journey.py)** sur ordinateur 1280 × 800 et téléphone 390 × 844 (tactile) : ouverture sur le menu sans démarrage automatique → Commencer refusé sans langue → Fon (exemple marqué « à enregistrer ») → Français → tutoriel 3 écrans → 01 → pause (temps figé) / reprise → paramètres en jeu (langue changée sans redémarrer, volume, sous-titres, réécoute) → choix A → quiz → fin (4 actions, pas de redémarrage) → retour au menu → rechargement (langue + Continuer conservés) → confirmation avant nouvelle partie → Échap → pause → menu → Comment jouer ? → Continuer : 0 échec, aucune erreur JS, aucun son lancé.
+- **Parcours menu (journey.py)** sur ordinateur 1280 × 800 et téléphone 390 × 844 (tactile) : ouverture sur le menu sans démarrage automatique → Commencer refusé sans langue → Fon (exemple marqué « à enregistrer ») → Français → tutoriel 3 écrans → 01 → pause (temps figé) / reprise → paramètres en jeu (langue changée sans redémarrer, volume, sous-titres, réécoute) → choix A → quiz → fin (4 actions, pas de redémarrage) → retour au menu → rechargement (langue + Continuer conservés) → confirmation avant nouvelle partie → Échap → pause → menu → Comment jouer ? → Continuer : 0 échec, aucune erreur JS.
 
 - Parcours complet branche A et branche B sur ordinateur (1280 × 800) et téléphone (390 × 844, tactile) : 0 échec.
 - Ralenti du carrefour : étiquettes ligne d’arrêt, minibus, zone invisible, voiture ; conclusion du policier ; « Revoir le carrefour » rejouable.
@@ -164,7 +178,7 @@ Scripts dans `tests/` (Python + Playwright) : `python3 tests/journey.py [d|t|m]`
 - Retour : bouton et touche Retour arrière (06 → 05, 04 → 03, depuis « Essayer l’autre choix »).
 - Clavier seul : focus initial, focus visible, `Entrée`, `1`/`2`, `N`, `M`, `Retour arrière`.
 - Réduction des mouvements : activée d’office avec `prefers-reduced-motion`, parcours complet sur téléphone dans ce mode.
-- Sans son : aucun élément audio/vidéo ; tout est sous-titré.
+- Tout est sous-titré : le jeu se parcourt aussi voix coupées.
 - Déterminisme : poses de 04A et 04B identiques sur deux sessions (27 instants chacune).
 
 - Décor v2 (lancer de rayons vers 18 points de la voiture) : voiture visible à **0 %** à la fin de l'approche et à l'instant du choix, sur ordinateur et téléphone ; **100 %** visible dans l'angle « rue transversale » de 04A (t = 2,4 s) et de 04B (t = 1,5 s).

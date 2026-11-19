@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "voice:script": "esbuild scripts/export-voice-script.ts --bundle --platform=node --format=esm --outfile=voicegen/export-voice.mjs --log-level=warning && node voicegen/export-voice.mjs",
+    "voice:build": "npm run voice:script && python3 voicegen/generate.py && python3 voicegen/qc.py"
   },
   "dependencies": {
     "three": "^0.170.0"

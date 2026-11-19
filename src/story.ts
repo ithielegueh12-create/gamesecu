@@ -155,6 +155,11 @@ export const NOTE_08 = [
 ];
 export const SOURCE_08 = 'Code de sécurité sociale du Bénin (loi n° 98-019), article 55 — régime géré par la CNSS.';
 
+// Textes des fiches affichées par le policier (même texte à l'écran et dans la voix)
+export const CARD_06 = { title: 'Le texte voté : permis et assurance moto', statusTitle: 'Statut vérifié' };
+export const CARD_07 = { title: 'L’assurance moto protège les autres', lead: 'Responsabilité civile :', body: 'elle couvre notamment les dommages que tu causes à d’autres personnes.' };
+export const CARD_08 = { title: 'La CNSS et l’accident de trajet', lead: 'Domicile → travail :', body: 'la CNSS peut reconnaître certains accidents sur ce trajet, sous conditions.' };
+
 // ── 09–11 Quiz ───────────────────────────────────────────────
 export interface QuizQ {
   step: StepId;
@@ -192,6 +197,24 @@ export const QUIZ: QuizQ[] = [
   },
 ];
 
+export const QUIZ_FB = { ok: 'Bonne réponse', ko: 'Pas tout à fait', expected: (o: string) => `Réponse attendue : « ${o} ».` };
+
+// ── Fin ──────────────────────────────────────────────────────
+export const FIN_TITLE = 'À retenir';
+export const RECAP_FIN: { lead: string; body: string }[] = [
+  { lead: 'Où s’arrêter :', body: 'au rouge, avant la ligne d’arrêt, même si la voie semble libre.' },
+  { lead: 'Pourquoi Joseph ne voyait pas la voiture :', body: 'le minibus arrêté à l’angle cachait la rue de droite.' },
+  { lead: 'Assurance moto ≠ CNSS :', body: 'la responsabilité civile couvre les dommages causés aux autres ; la CNSS peut reconnaître certains accidents de trajet, selon la situation et les conditions.' },
+];
+
+// ── Tutoriel ─────────────────────────────────────────────────
+export const TUTO_TEXT = [
+  { h: 'Écouter', p: 'Le haut-parleur fait entendre la consigne.' },
+  { h: 'Choisir', p: 'Touche une des deux réponses.' },
+  { h: 'Continuer', p: 'La flèche passe à la suite.' },
+];
+export const LANG_EXAMPLE = 'Bonjour. Tu vas suivre Joseph, un matin, au carrefour de la Marina.';
+
 // ── Sources (consultées le 18 novembre 2026) ─────────────────
 export interface Source { label: string; url: string; note: string }
 export const SOURCES: Source[] = [
@@ -210,5 +233,6 @@ export const CREDITS = [
   'Outillage : Vite, TypeScript — licences MIT / Apache-2.0.',
   'Polices : polices système de l’appareil (aucune police téléchargée).',
   'Références de conception (photos fournies, non intégrées au jeu) : caméra derrière le motocycliste (crédit visible : AFP), boulevard en vue aérienne, tenue de policier, architecture et esplanade, zémidjans au carrefour, fresque urbaine, geste de contrôle (crédit visible : Présidence du Bénin). Aucune photo, aucun filigrane, aucun nom ni insigne n’est repris : modèles, textures, fresque et personnages sont des créations originales.',
-  'Audio : aucun. Narration en fon : à enregistrer et à valider par une personne locutrice native.',
+  'Voix françaises : synthèse vocale neuronale hors ligne Piper (moteur Piper, licence MIT/GPL selon la version). Voix : « siwis » (narration ; corpus SIWIS, CC BY 4.0), « tom » (Joseph), « pierre » du modèle « upmc », abaissée pour le policier et relevée pour le responsable au téléphone ( corpus UPMC, licence CC BY-NC-SA 4.0 : usage non commercial). Licences des modèles à vérifier sur leurs fiches (MODEL_CARD) avant toute diffusion publique. Ce ne sont pas des comédiens : voix de synthèse, à remplacer par des enregistrements humains si possible.',
+  'Narration en fon : à enregistrer et à valider par une personne locutrice native.',
 ];

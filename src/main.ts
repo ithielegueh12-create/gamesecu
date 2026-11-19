@@ -3,14 +3,15 @@ import './style.css';
 import { World } from './world';
 import { SHOTS, ShotId, Shot } from './shots';
 import { PICTO, ICON, TUTO_ART } from './pictos';
-import { Lang, LANG_LABEL, LANG_CODE, MISSING_AUDIO, AUDIO_SCRIPT, Voice, uiAudio, AudioKey } from './audio';
+import { Lang, LANG_LABEL, LANG_CODE, MISSING_AUDIO, Voice } from './audio';
+import { lineVoiceId, V_CHOICES, V_CARD_06, V_CARD_07, V_CARD_08, V_QUIZ, V_FIN, V_TUTO, V_EXAMPLE } from './voice-script';
 import {
   STEPS, StepId, Branch, Line, Cue, SPEAKER_LABEL, nextStep,
   LINES_01, MSG_RESPONSABLE, CUES_02, LINE_03, CHOICE_WAIT, CHOICE_GO,
   CUES_04A, END_04A, CUES_04B, END_04B,
   OPEN_05, BEFORE_REPLAY_05, CUES_REPLAY, CONCLUSION_05,
   LINE_06, STATUS_06, LINES_07, NOTE_07, LINES_08, NOTE_08, SOURCE_08,
-  QUIZ, SOURCES, CREDITS,
+  QUIZ, SOURCES, CREDITS, TUTO_TEXT,
 } from './story';
 
 // ─────────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ let lang: Lang | null = (store.get('lang') as Lang | null);
 if (lang !== 'fr' && lang !== 'fon') lang = null;
 let subs = store.get('subs') !== '0';
 voice.setVolume(Number(store.get('volume') ?? '80') / 100);
+voice.setEnabled(store.get('voices') !== '0');
 let tutoSeen = store.get('tutoSeen') === '1';
 
 // ─────────────────────────────────────────────────────────────
@@ -134,14 +136,20 @@ document.querySelector('.fon-btn .i')!.innerHTML = ICON.speaker;
 document.querySelector('#btn-pause .i')!.innerHTML = ICON.pause;
 const listenBtn = $<HTMLButtonElement>('btn-listen');
 /** Bouton « Écouter » du sous-titre : actif seulement si un enregistrement existe dans la langue choisie. */
+const voiceBtn = $<HTMLButtonElement>('btn-voice');
+voiceBtn.querySelector('.i')!.innerHTML = ICON.speaker;
+voiceBtn.addEventListener('click', () => voice.replay());
 function updateListen() {
   const l: Lang = lang ?? 'fr';
-  const file = currentLine ? currentLine[l] : null;
-  listenBtn.disabled = !file;
-  $('listen-label').textContent = l === 'fon' ? 'Écouter en fon' : 'Écouter';
-  $('fon-note').textContent = file ? '' : MISSING_AUDIO[l];
+  listenBtn.disabled = voice.last.length === 0;
+  listenBtn.classList.toggle('speaking', voice.speaking);
+  voiceBtn.disabled = voice.last.length === 0; voiceBtn.classList.toggle('speaking', voice.speaking);
+  voiceBtn.setAttribute('aria-label', voice.speaking ? 'Voix en cours — relancer depuis le début' : 'Réécouter la dernière intervention');
+  $('listen-label').textContent = voice.speaking ? 'En cours…' : 'Réécouter';
+  $('fon-note').textContent = l === 'fon' ? MISSING_AUDIO.fon : '';
 }
-listenBtn.addEventListener('click', () => { if (currentLine) voice.play(currentLine[lang ?? 'fr']); });
+voice.onChange = updateListen;
+listenBtn.addEventListener('click', () => voice.replay());
 document.querySelector('.phone-head .phone-i')!.innerHTML = ICON.phone;
 
 const PATH: StepId[] = ['01', '02', '03', '04A', '05', '06', '07', '08', '09', '10', '11'];
@@ -152,10 +160,13 @@ function renderProgress() {
   ui.progress.setAttribute('aria-label', cur === 'fin' ? 'Parcours terminé' : `Étape ${idx + 1} sur ${PATH.length}`);
 }
 
-function say(line: Line | null, rule = false) {
+/** Affiche une réplique et fait parler la voix correspondante (puis `extra` : fiche, réponses…). */
+function say(line: Line | null, rule = false, extra: string[] = []) {
+  const same = line !== null && line === currentLine;
   currentLine = line;
+  if (!line) { voice.stop(); ui.sub.hidden = true; updateListen(); return; }
+  if (!same) voice.speak([lineVoiceId(line), ...extra]);
   updateListen();
-  if (!line) { ui.sub.hidden = true; return; }
   ui.sub.hidden = false;
   ui.sub.className = `subtitle ${line.who}${rule ? ' rule' : ''}`;
   ui.who.textContent = SPEAKER_LABEL[line.who];
@@ -191,11 +202,11 @@ function showCard(html: string | null) {
 }
 
 /** Enchaîne des répliques avec « Suivant », puis affiche les actions finales. */
-function dialogue(lines: Line[], final: Act[], token: number, onLine?: (i: number) => void) {
+function dialogue(lines: Line[], final: Act[], token: number, onLine?: (i: number) => void, extra?: (i: number) => string[]) {
   let i = 0;
   const show = () => {
     if (token !== stepToken) return;
-    say(lines[i]); onLine?.(i);
+    say(lines[i], false, extra?.(i) ?? []); onLine?.(i);
     if (i < lines.length - 1) setActions([{ label: 'Suivant', key: 'N', run: () => { i++; show(); } }]);
     else setActions(final);
   };
@@ -287,7 +298,7 @@ function enter(step: StepId) {
     }
     case '03': {
       playShot('freeze');
-      say(LINE_03);
+      say(LINE_03, false, V_CHOICES);
       ui.actions.className = 'actions choices';
       ui.actions.innerHTML = `
         <button type="button" class="choice wait" data-choice="A">${ICON.hand}<span>${CHOICE_WAIT}</span><span class="k" aria-hidden="true">1</span></button>
@@ -361,7 +372,7 @@ function enter(step: StepId) {
           <p class="note">${STATUS_06.cnsr}</p>
           <p class="src"><button type="button" class="linkish" data-open-sources>Voir les sources consultées</button></p>
         </div>`);
-      say(LINE_06);
+      say(LINE_06, false, V_CARD_06);
       setActions([{ label: 'Suivant', key: 'N', run: () => goTo('07') }]);
       break;
     }
@@ -375,7 +386,8 @@ function enter(step: StepId) {
           ${withNote ? `<p class="note">${NOTE_07}</p>` : ''}
         </div>`);
       card(false);
-      dialogue(LINES_07, [{ label: 'Suivant', key: 'N', run: () => goTo('08') }], token, (i) => card(i === 1));
+      dialogue(LINES_07, [{ label: 'Suivant', key: 'N', run: () => goTo('08') }], token, (i) => card(i === 1),
+        (i) => (i === 1 ? [...V_CARD_07.intro, ...V_CARD_07.note] : []));
       break;
     }
     case '08': {
@@ -389,7 +401,8 @@ function enter(step: StepId) {
           <p class="src">Source : ${SOURCE_08} <button type="button" class="linkish" data-open-sources>Voir les sources</button></p>
         </div>`);
       card(false);
-      dialogue(LINES_08, [{ label: 'Passer au quiz', key: 'N', run: () => goTo('09') }], token, (i) => card(i === 1));
+      dialogue(LINES_08, [{ label: 'Passer au quiz', key: 'N', run: () => goTo('09') }], token, (i) => card(i === 1),
+        (i) => (i === 1 ? [...V_CARD_08.intro, ...V_CARD_08.note] : []));
       break;
     }
     case '09': case '10': case '11': {
@@ -415,6 +428,7 @@ function enter(step: StepId) {
         { label: 'Retour au menu principal', kind: 'secondary', icon: ICON.home, run: showMenu },
         { label: 'Sources', kind: 'secondary', icon: ICON.book, run: openSources },
       ]);
+      voice.speak(V_FIN); updateListen();
       break;
     }
   }
@@ -468,11 +482,13 @@ function renderQuiz(qi: number) {
       : [{ label: 'Réessayer', key: 'N', icon: ICON.replay, run: () => renderQuiz(qi) },
          { label: qi === QUIZ.length - 1 ? 'Terminer' : 'Question suivante', kind: 'secondary', run: () => goTo(next) }];
     setActions(acts);
+    voice.speak([ok ? V_QUIZ[qi].ok : V_QUIZ[qi].ko]); updateListen();
     ui.card.scrollTop = ui.card.scrollHeight;
   };
   opts.forEach((b, i) => b.addEventListener('click', () => answer(i)));
   quizAnswer = answer;
   setActions([], false);
+  voice.speak([V_QUIZ[qi].question, ...V_QUIZ[qi].options]); updateListen();
   opts[0].focus({ preventScroll: true });
 }
 let quizAnswer: ((i: number) => void) | null = null;
@@ -504,14 +520,14 @@ const anyDialogOpen = () => ui.dlgSources.open || ui.dlgSettings.open || dlgPaus
 // ── Langue ───────────────────────────────────────────────────
 const langMsg = $('lang-msg'), langGroup = $('lang-group');
 function setLang(l: Lang) {
-  lang = l; store.set('lang', l);
+  lang = l; store.set('lang', l); voice.lang = l;
   document.documentElement.lang = LANG_CODE[l];
   document.querySelectorAll<HTMLButtonElement>('.lang-pick').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.lang === l)));
   document.querySelectorAll<HTMLElement>('.lang-card').forEach((c) => c.classList.toggle('on', c.dataset.lang === l));
   document.querySelectorAll<HTMLButtonElement>('[data-set-lang]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.setLang === l)));
   langGroup.classList.remove('attention');
   langMsg.textContent = l === 'fon'
-    ? 'Fon choisi. Les textes restent en français pour l’instant ; la narration fon sera ajoutée une fois enregistrée et validée.'
+    ? 'Fon choisi. Les textes et les voix restent en français pour l’instant ; la narration fon sera ajoutée une fois enregistrée et validée.'
     : 'Français choisi.';
   updateListen();
 }
@@ -526,10 +542,11 @@ langGroup.addEventListener('keydown', (e) => {
 });
 // Exemples audio : actifs seulement si l'enregistrement existe
 document.querySelectorAll<HTMLButtonElement>('.lang-listen').forEach((b) => {
-  const l = b.dataset.lang as Lang; const file = uiAudio(l, 'exemple');
+  const l = b.dataset.lang as Lang;
   b.querySelector('.i')!.innerHTML = ICON.speaker;
-  if (!file) { b.disabled = true; b.querySelector('.lang-listen-t')!.textContent = l === 'fon' ? 'Exemple fon à enregistrer' : 'Exemple à enregistrer'; b.setAttribute('aria-label', MISSING_AUDIO[l]); }
-  b.addEventListener('click', () => voice.play(file));
+  if (l === 'fon') { b.disabled = true; b.querySelector('.lang-listen-t')!.textContent = 'Exemple fon à enregistrer'; b.setAttribute('aria-label', 'Voix fon à enregistrer et à valider'); }
+  else { b.querySelector('.lang-listen-t')!.textContent = 'Écouter un exemple'; b.setAttribute('aria-label', 'Écouter un exemple de voix en français'); }
+  b.addEventListener('click', () => voice.speak([V_EXAMPLE], true));
 });
 
 // ── Menu principal ───────────────────────────────────────────
@@ -588,20 +605,16 @@ $('m-settings').addEventListener('click', openSettings);
 $('m-sources').addEventListener('click', openSources);
 
 // ── Tutoriel (3 actions illustrées) ──────────────────────────
-const TUTO: { art: string; h: string; p: string; key: AudioKey }[] = [
-  { art: TUTO_ART.ecouter, h: 'Écouter', p: 'Le haut-parleur fait entendre la consigne.', key: 'tuto-ecouter' },
-  { art: TUTO_ART.choisir, h: 'Choisir', p: 'Touche une des deux réponses.', key: 'tuto-choisir' },
-  { art: TUTO_ART.continuer, h: 'Continuer', p: 'La flèche passe à la suite.', key: 'tuto-continuer' },
-];
+const TUTO = [TUTO_ART.ecouter, TUTO_ART.choisir, TUTO_ART.continuer].map((art, i) => ({ art, ...TUTO_TEXT[i], voiceId: V_TUTO[i] }));
 const tutoEl = $('tuto');
 let tutoIdx = 0, tutoDone: (() => void) | null = null, tutoPrevMode: Mode = 'menu';
 function renderTuto() {
-  const s = TUTO[tutoIdx]; const l: Lang = lang ?? 'fr'; const file = uiAudio(l, s.key);
+  const s = TUTO[tutoIdx]; const l: Lang = lang ?? 'fr';
   $('tuto-art').innerHTML = s.art; $('tuto-h').textContent = s.h; $('tuto-p').textContent = s.p;
   $('tuto-count').textContent = `${tutoIdx + 1} / ${TUTO.length}`;
   document.querySelectorAll('#tuto-dots li').forEach((d, i) => d.classList.toggle('on', i === tutoIdx));
-  const lb = $<HTMLButtonElement>('tuto-listen'); lb.disabled = !file;
-  $('tuto-listen-t').textContent = file ? (l === 'fon' ? 'Écouter en fon' : 'Écouter') : MISSING_AUDIO[l];
+  $('tuto-listen-t').textContent = l === 'fon' ? 'Réécouter (voix française)' : 'Réécouter';
+  voice.speak([s.voiceId]);
   $<HTMLButtonElement>('tuto-prev').disabled = tutoIdx === 0;
   $('tuto-next-t').textContent = tutoIdx === TUTO.length - 1 ? 'C’est parti' : 'Suivant';
 }
@@ -618,18 +631,18 @@ function closeTuto() {
 $('tuto-next').addEventListener('click', () => { if (tutoIdx < TUTO.length - 1) { tutoIdx++; renderTuto(); } else closeTuto(); });
 $('tuto-prev').addEventListener('click', () => { if (tutoIdx > 0) { tutoIdx--; renderTuto(); $<HTMLButtonElement>('tuto-next').focus(); } });
 $('tuto-skip').addEventListener('click', closeTuto);
-$('tuto-listen').addEventListener('click', () => voice.play(uiAudio(lang ?? 'fr', TUTO[tutoIdx].key)));
+$('tuto-listen').addEventListener('click', () => voice.speak([TUTO[tutoIdx].voiceId], true));
 
 // ── Pause ────────────────────────────────────────────────────
 function openPause() {
   if (mode !== 'jeu' && mode !== 'fin') return;
   const d = STEPS[state.step];
   $('pause-where').textContent = state.step === 'fin' ? 'Fin du parcours' : `Étape ${d.num} · ${d.title}`;
-  pausedFrom = mode; setMode('pause');
+  pausedFrom = mode; setMode('pause'); voice.pause();
   dlgPause.showModal(); $('p-resume').focus();
 }
 let pausedFrom: Mode = 'jeu';
-dlgPause.addEventListener('close', () => { if (mode === 'pause') setMode(pausedFrom); });
+dlgPause.addEventListener('close', () => { if (mode === 'pause') { setMode(pausedFrom); voice.resume(); } });
 $('btn-pause').addEventListener('click', openPause);
 $('p-resume').addEventListener('click', () => dlgPause.close());
 $('p-restart').addEventListener('click', () => { dlgPause.close(); enter(state.step); });
@@ -638,7 +651,9 @@ $('p-sources').addEventListener('click', () => { dlgPause.close(); openSources()
 $('p-menu').addEventListener('click', () => showMenu());
 
 // ── Paramètres ───────────────────────────────────────────────
-const optVol = $<HTMLInputElement>('opt-volume'), optSubs = $<HTMLInputElement>('opt-subs');
+const optVol = $<HTMLInputElement>('opt-volume'), optSubs = $<HTMLInputElement>('opt-subs'), optVoices = $<HTMLInputElement>('opt-voices');
+optVoices.checked = voice.enabled;
+optVoices.addEventListener('change', () => { voice.setEnabled(optVoices.checked); store.set('voices', optVoices.checked ? '1' : '0'); updateListen(); });
 optVol.value = String(Math.round(voice.volume * 100)); $('vol-out').textContent = optVol.value + ' %';
 optVol.addEventListener('input', () => { voice.setVolume(Number(optVol.value) / 100); $('vol-out').textContent = optVol.value + ' %'; store.set('volume', optVol.value); });
 function setSubs(v: boolean) { subs = v; optSubs.checked = v; document.body.classList.toggle('no-subs', !v); store.set('subs', v ? '1' : '0'); }
@@ -647,9 +662,8 @@ setSubs(subs);
 $('opt-replay').addEventListener('click', () => {
   const msg = $('replay-msg');
   if (mode === 'menu' || mode === 'tuto') { ui.dlgSettings.close(); openTuto(() => mStart.focus()); return; }
-  const file = currentLine ? currentLine[lang ?? 'fr'] : null;
-  if (file) { voice.play(file); msg.textContent = 'Lecture de la consigne en cours.'; return; }
-  msg.textContent = 'Pas encore d’enregistrement pour cette consigne : elle reste affichée en sous-titre.';
+  if (voice.replay()) { msg.textContent = 'Lecture de la dernière consigne en cours.'; return; }
+  msg.textContent = 'Aucune consigne à réécouter pour l’instant : elle reste affichée en sous-titre.';
   if (!subs) setSubs(true);
   ui.sub.classList.remove('flash-sub'); void ui.sub.offsetWidth; ui.sub.classList.add('flash-sub');
 });
@@ -670,6 +684,7 @@ window.addEventListener('keydown', (e) => {
   }
   if (mode === 'menu') return;
   if (k === 'Escape') { e.preventDefault(); openPause(); return; }
+  if (k === 'r' || k === 'R') { voice.replay(); return; }
   if (k === 'Backspace') { e.preventDefault(); goBack(); return; }
   if (k === 'm' || k === 'M') { setReduced(!reduced); return; }
   if (k === '1' || k === '2') {
@@ -684,13 +699,30 @@ window.addEventListener('keydown', (e) => {
 // Boucle
 // ─────────────────────────────────────────────────────────────
 const clock = new THREE.Clock();
+/**
+ * Synchronisation voix ↔ image : pendant une séquence rythmée par des répliques,
+ * si la voix en cours n'a pas fini quand la réplique suivante (ou la fin du plan)
+ * approche, le temps du plan ralentit — jusqu'à attendre — pour que deux voix ne
+ * se chevauchent jamais et qu'aucune phrase ne soit coupée.
+ */
+function voicePace(): number {
+  if (!cues.length || !voice.speaking) return 1;
+  let k = cueIdx; // la réplique déjà affichée (lancée à l'entrée de l'étape) ne compte pas comme « suivante »
+  while (k < cues.length && cues[k].line === currentLine) k++;
+  const target = k < cues.length ? cues[k].t : shot.duration;
+  const left = voice.remaining();
+  const room = target - shotT;
+  if (left <= 0.05) return 1;
+  if (room <= 0.001) return 0;
+  return Math.min(1, room / left);
+}
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1);
   const holdTime = frozen || mode === 'pause' || ((mode === 'jeu' || mode === 'fin') && anyDialogOpen());
   if (holdTime) { /* pause : le récit n’avance pas */ } else if (!shotEnded) {
-    shotT += dt;
+    shotT += dt * voicePace();
     const done = shotT >= shot.duration;
     if (done) shotT = shot.duration;
     // les répliques d'abord, puis la fin du plan (qui peut afficher la conclusion)
@@ -726,7 +758,8 @@ function frame() {
 (window as unknown as { __marina: unknown }).__marina = {
   get step() { return state.step; }, get branch() { return state.branch; }, get mode() { return mode; },
   get t() { return shotT; }, get calls() { return renderer.info.render.calls; }, get tris() { return renderer.info.render.triangles; }, get shot() { return shotId; }, get reduced() { return reduced; },
-  skip() { if (Number.isFinite(shot.duration)) shotT = shot.duration - 0.01; },
+  skip() { voice.stop(); if (Number.isFinite(shot.duration)) shotT = shot.duration - 0.01; },
+  get audio() { return { ...voice.state, enabled: voice.enabled, last: voice.last, log: voice.log, hist: voice.hist }; },
   seek(t: number) { frozen = true; shotT = t; },
   /** Caméra libre, en coordonnées relatives à la moto de Joseph (null pour revenir au plan du jeu). */
   freeCam(p: number[] | null, l?: number[], fov?: number) {

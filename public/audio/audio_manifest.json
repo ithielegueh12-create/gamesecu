@@ -1,0 +1,693 @@
+{
+ "language": "fr",
+ "generator": "Piper (synthèse neuronale hors ligne)",
+ "voices": {
+  "narratrice": "voix féminine claire et posée (siwis)",
+  "joseph": "voix masculine jeune adulte (tom)",
+  "policier": "voix masculine plus grave et posée (upmc « pierre », abaissée d’environ 1,5 demi-ton)",
+  "responsable": "voix masculine pressée, entendue au téléphone (upmc « pierre », relevée d’environ 1,5 demi-ton, filtre téléphone)"
+ },
+ "count": 68,
+ "items": [
+  {
+   "id": "01-responsable-01",
+   "character": "Le responsable de Joseph (message vocal)",
+   "voice": "responsable",
+   "scene": "01",
+   "text": "Joseph, tu es où ? La réunion commence à 8 h.",
+   "spoken": "Joseph, tu es où ? La réunion commence à 8 heures.",
+   "path": "audio/fr/characters/01-responsable-01.mp3",
+   "duration": 3.5
+  },
+  {
+   "id": "01-narratrice-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "01",
+   "text": "Joseph est stationné au bord du boulevard. Il range son téléphone avant de démarrer.",
+   "spoken": null,
+   "path": "audio/fr/narrator/01-narratrice-01.mp3",
+   "duration": 5.36
+  },
+  {
+   "id": "02-narratrice-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "02",
+   "text": "Téléphone rangé. Joseph démarre.",
+   "spoken": null,
+   "path": "audio/fr/narrator/02-narratrice-01.mp3",
+   "duration": 2.98
+  },
+  {
+   "id": "02-narratrice-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "02",
+   "text": "Devant lui, une autre moto passe au rouge.",
+   "spoken": null,
+   "path": "audio/fr/narrator/02-narratrice-02.mp3",
+   "duration": 2.87
+  },
+  {
+   "id": "02-joseph-01",
+   "character": "Joseph",
+   "voice": "joseph",
+   "scene": "02",
+   "text": "La voie semble libre…",
+   "spoken": null,
+   "path": "audio/fr/joseph/02-joseph-01.mp3",
+   "duration": 2.12
+  },
+  {
+   "id": "03-narratrice-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "03",
+   "text": "Joseph arrive à la ligne d’arrêt. Son feu est rouge. Que fait-il ?",
+   "spoken": null,
+   "path": "audio/fr/narrator/03-narratrice-01.mp3",
+   "duration": 4.94
+  },
+  {
+   "id": "03-choix-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "03",
+   "text": "J’attends le vert",
+   "spoken": null,
+   "path": "audio/fr/instructions/03-choix-01.mp3",
+   "duration": 1.25
+  },
+  {
+   "id": "03-choix-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "03",
+   "text": "Je passe au rouge",
+   "spoken": null,
+   "path": "audio/fr/instructions/03-choix-02.mp3",
+   "duration": 1.38
+  },
+  {
+   "id": "04a-narratrice-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04a",
+   "text": "Joseph s’arrête avant la ligne.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04a-narratrice-01.mp3",
+   "duration": 1.93
+  },
+  {
+   "id": "04a-narratrice-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04a",
+   "text": "Vue depuis la rue transversale : la voiture arrive de la droite de Joseph, cachée par le minibus. Joseph reste derrière la ligne : son feu est rouge.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04a-narratrice-02.mp3",
+   "duration": 10.24
+  },
+  {
+   "id": "04a-narratrice-03",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04a",
+   "text": "La voiture est passée. Le feu change.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04a-narratrice-03.mp3",
+   "duration": 3.03
+  },
+  {
+   "id": "04a-narratrice-04",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04a",
+   "text": "Vert. La voie est dégagée : Joseph repart.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04a-narratrice-04.mp3",
+   "duration": 3.71
+  },
+  {
+   "id": "04a-narratrice-05",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04a",
+   "text": "8 h 04. Joseph arrive légèrement en retard.",
+   "spoken": "8 heures 4. Joseph arrive légèrement en retard.",
+   "path": "audio/fr/narrator/04a-narratrice-05.mp3",
+   "duration": 3.81
+  },
+  {
+   "id": "04a-narratrice-06",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04a",
+   "text": "Au carrefour, un policier anime un briefing de prévention. Pas de contrôle : il partage la scène avec les motocyclistes.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04a-narratrice-06.mp3",
+   "duration": 7.81
+  },
+  {
+   "id": "04b-narratrice-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04b",
+   "text": "Joseph s’engage au rouge.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04b-narratrice-01.mp3",
+   "duration": 1.88
+  },
+  {
+   "id": "04b-narratrice-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04b",
+   "text": "Vue depuis la rue transversale : la voiture arrive de la droite de Joseph, cachée par le minibus !",
+   "spoken": null,
+   "path": "audio/fr/narrator/04b-narratrice-02.mp3",
+   "duration": 5.96
+  },
+  {
+   "id": "04b-narratrice-03",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04b",
+   "text": "Joseph freine de justesse. Pas de choc.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04b-narratrice-03.mp3",
+   "duration": 3.16
+  },
+  {
+   "id": "04b-narratrice-04",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04b",
+   "text": "Plus loin, un policier lève la main puis lui fait signe de se ranger.",
+   "spoken": null,
+   "path": "audio/fr/narrator/04b-narratrice-04.mp3",
+   "duration": 4.65
+  },
+  {
+   "id": "04b-policier-01",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "04b",
+   "text": "Contrôle. Vous êtes passé au rouge : c’est une infraction qui peut être sanctionnée.",
+   "spoken": null,
+   "path": "audio/fr/characters/04b-policier-01.mp3",
+   "duration": 5.51
+  },
+  {
+   "id": "04b-narratrice-05",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "04b",
+   "text": "8 h 00. Pendant le contrôle, la réunion de Joseph commence sans lui.",
+   "spoken": "8 heures. Pendant le contrôle, la réunion de Joseph commence sans lui.",
+   "path": "audio/fr/narrator/04b-narratrice-05.mp3",
+   "duration": 4.73
+  },
+  {
+   "id": "05a-policier-01",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "05a",
+   "text": "Bonjour Joseph. Tu t’es arrêté au rouge alors que tu étais pressé : c’était le bon réflexe. Regardons pourquoi.",
+   "spoken": null,
+   "path": "audio/fr/characters/05a-policier-01.mp3",
+   "duration": 7.78
+  },
+  {
+   "id": "05b-policier-01",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "05b",
+   "text": "Vous avez failli heurter cette voiture. Vous ne pouviez pas la voir. Regardons pourquoi.",
+   "spoken": null,
+   "path": "audio/fr/characters/05b-policier-01.mp3",
+   "duration": 5.62
+  },
+  {
+   "id": "05-policier-01",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "05",
+   "text": "Revoyons le carrefour d’en haut, au ralenti.",
+   "spoken": null,
+   "path": "audio/fr/characters/05-policier-01.mp3",
+   "duration": 3.08
+  },
+  {
+   "id": "05-policier-02",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "05",
+   "text": "Ici, la ligne d’arrêt : c’est avant elle que Joseph devait s’arrêter.",
+   "spoken": null,
+   "path": "audio/fr/characters/05-policier-02.mp3",
+   "duration": 4.55
+  },
+  {
+   "id": "05-policier-03",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "05",
+   "text": "Le minibus arrêté à l’angle cachait toute la rue de droite.",
+   "spoken": null,
+   "path": "audio/fr/characters/05-policier-03.mp3",
+   "duration": 3.76
+  },
+  {
+   "id": "05-policier-04",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "05",
+   "text": "La voiture arrivait de là. Depuis la moto, elle restait invisible jusqu’au dernier moment.",
+   "spoken": null,
+   "path": "audio/fr/characters/05-policier-04.mp3",
+   "duration": 5.96
+  },
+  {
+   "id": "05-policier-05",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "05",
+   "text": "Au rouge, on s’arrête avant la ligne, même si la voie semble libre.",
+   "spoken": null,
+   "path": "audio/fr/characters/05-policier-05.mp3",
+   "duration": 4.49
+  },
+  {
+   "id": "06-policier-01",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "06",
+   "text": "Le texte voté le 26 octobre 2026 prévoit des dispositions sur le permis et l’assurance pour les motocyclistes.",
+   "spoken": null,
+   "path": "audio/fr/characters/06-policier-01.mp3",
+   "duration": 7.37
+  },
+  {
+   "id": "06-fiche-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "06",
+   "text": "Le texte voté : permis et assurance moto",
+   "spoken": null,
+   "path": "audio/fr/narrator/06-fiche-01.mp3",
+   "duration": 3.53
+  },
+  {
+   "id": "06-fiche-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "06",
+   "text": "Statut vérifié au 18 novembre 2026.",
+   "spoken": null,
+   "path": "audio/fr/narrator/06-fiche-02.mp3",
+   "duration": 3.32
+  },
+  {
+   "id": "06-fiche-03",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "06",
+   "text": "Adopté par l’Assemblée nationale le 26 octobre 2026 : loi n° 2026-18 portant Code de la route.",
+   "spoken": "Adopté par l’Assemblée nationale le 26 octobre 2026 : loi numéro 2026 tiret 18 portant Code de la route.",
+   "path": "audio/fr/narrator/06-fiche-03.mp3",
+   "duration": 7.99
+  },
+  {
+   "id": "06-fiche-04",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "06",
+   "text": "Promulgation, publication au Journal officiel et modalités d’application : à confirmer. Les sources consultées n’en font pas état ; selon la presse, les contrôles du permis ne commenceront qu’après la promulgation.",
+   "spoken": null,
+   "path": "audio/fr/narrator/06-fiche-04.mp3",
+   "duration": 12.12
+  },
+  {
+   "id": "06-fiche-05",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "06",
+   "text": "Le CNSR (Centre national de sécurité routière) informe le public sur ces règles et mène des actions de prévention.",
+   "spoken": null,
+   "path": "audio/fr/narrator/06-fiche-05.mp3",
+   "duration": 6.71
+  },
+  {
+   "id": "07-joseph-01",
+   "character": "Joseph",
+   "voice": "joseph",
+   "scene": "07",
+   "text": "Et si j’avais touché la voiture ?",
+   "spoken": null,
+   "path": "audio/fr/joseph/07-joseph-01.mp3",
+   "duration": 2.59
+  },
+  {
+   "id": "07-policier-01",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "07",
+   "text": "L’assurance de responsabilité civile de la moto sert notamment à couvrir les dommages que tu causes à d’autres personnes.",
+   "spoken": null,
+   "path": "audio/fr/characters/07-policier-01.mp3",
+   "duration": 7.29
+  },
+  {
+   "id": "07-fiche-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "07",
+   "text": "L’assurance moto protège les autres",
+   "spoken": null,
+   "path": "audio/fr/narrator/07-fiche-01.mp3",
+   "duration": 2.43
+  },
+  {
+   "id": "07-fiche-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "07",
+   "text": "Responsabilité civile : elle couvre notamment les dommages que tu causes à d’autres personnes.",
+   "spoken": null,
+   "path": "audio/fr/narrator/07-fiche-02.mp3",
+   "duration": 5.04
+  },
+  {
+   "id": "07-fiche-03",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "07",
+   "text": "Elle protège les autres : la voiture, ses passagers, les piétons. Tes propres blessures relèvent d’une autre question.",
+   "spoken": null,
+   "path": "audio/fr/narrator/07-fiche-03.mp3",
+   "duration": 6.82
+  },
+  {
+   "id": "08-joseph-01",
+   "character": "Joseph",
+   "voice": "joseph",
+   "scene": "08",
+   "text": "Et si je m’étais blessé en allant au travail ?",
+   "spoken": null,
+   "path": "audio/fr/joseph/08-joseph-01.mp3",
+   "duration": 3.37
+  },
+  {
+   "id": "08-policier-01",
+   "character": "Le policier",
+   "voice": "policier",
+   "scene": "08",
+   "text": "La CNSS peut reconnaître certains accidents entre le domicile et le travail. Cela dépend de ta situation et des conditions du trajet.",
+   "spoken": null,
+   "path": "audio/fr/characters/08-policier-01.mp3",
+   "duration": 8.57
+  },
+  {
+   "id": "08-fiche-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "08",
+   "text": "La CNSS et l’accident de trajet",
+   "spoken": null,
+   "path": "audio/fr/narrator/08-fiche-01.mp3",
+   "duration": 3.06
+  },
+  {
+   "id": "08-fiche-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "08",
+   "text": "Domicile → travail : la CNSS peut reconnaître certains accidents sur ce trajet, sous conditions.",
+   "spoken": "Domicile vers le travail : la CNSS peut reconnaître certains accidents sur ce trajet, sous conditions.",
+   "path": "audio/fr/narrator/08-fiche-02.mp3",
+   "duration": 6.11
+  },
+  {
+   "id": "08-fiche-03",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "08",
+   "text": "Un détour pour un motif personnel peut empêcher la reconnaissance de l’accident de trajet.",
+   "spoken": null,
+   "path": "audio/fr/narrator/08-fiche-03.mp3",
+   "duration": 4.78
+  },
+  {
+   "id": "08-fiche-04",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "08",
+   "text": "On ne connaît pas la situation de Joseph : on ne peut donc pas dire s’il serait couvert.",
+   "spoken": null,
+   "path": "audio/fr/narrator/08-fiche-04.mp3",
+   "duration": 4.96
+  },
+  {
+   "id": "08-fiche-05",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "08",
+   "text": "Source : Code de sécurité sociale du Bénin (loi n° 98-019), article 55 — régime géré par la CNSS.",
+   "spoken": "Source : Code de sécurité sociale du Bénin (loi numéro 98-019), article 55, régime géré par la CNSS.",
+   "path": "audio/fr/narrator/08-fiche-05.mp3",
+   "duration": 8.33
+  },
+  {
+   "id": "09-question-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "09",
+   "text": "Le feu est rouge. La voie semble libre. Que fais-tu ?",
+   "spoken": null,
+   "path": "audio/fr/quiz/09-question-01.mp3",
+   "duration": 4.73
+  },
+  {
+   "id": "09-option-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "09",
+   "text": "J’attends le vert",
+   "spoken": null,
+   "path": "audio/fr/quiz/09-option-01.mp3",
+   "duration": 1.28
+  },
+  {
+   "id": "09-option-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "09",
+   "text": "Je passe",
+   "spoken": null,
+   "path": "audio/fr/quiz/09-option-02.mp3",
+   "duration": 1.02
+  },
+  {
+   "id": "09-bonne-reponse-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "09",
+   "text": "Bonne réponse. Oui. On s’arrête avant la ligne : un minibus, un camion ou un mur peut cacher un véhicule qui arrive.",
+   "spoken": null,
+   "path": "audio/fr/quiz/09-bonne-reponse-01.mp3",
+   "duration": 8.18
+  },
+  {
+   "id": "09-mauvaise-reponse-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "09",
+   "text": "Pas tout à fait. Non. « Libre » ne veut pas dire « sûr » : le minibus cachait la voiture qui arrivait de droite. Au rouge, on s’arrête avant la ligne. Réponse attendue : « J’attends le vert ».",
+   "spoken": "Pas tout à fait. Non. Libre ne veut pas dire sûr : le minibus cachait la voiture qui arrivait de droite. Au rouge, on s’arrête avant la ligne. Réponse attendue : J’attends le vert .",
+   "path": "audio/fr/quiz/09-mauvaise-reponse-01.mp3",
+   "duration": 12.7
+  },
+  {
+   "id": "10-question-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "10",
+   "text": "Que prévoit le texte voté pour les motocyclistes ?",
+   "spoken": null,
+   "path": "audio/fr/quiz/10-question-01.mp3",
+   "duration": 2.8
+  },
+  {
+   "id": "10-option-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "10",
+   "text": "Permis et assurance moto",
+   "spoken": null,
+   "path": "audio/fr/quiz/10-option-01.mp3",
+   "duration": 1.96
+  },
+  {
+   "id": "10-option-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "10",
+   "text": "Rien de nouveau",
+   "spoken": null,
+   "path": "audio/fr/quiz/10-option-02.mp3",
+   "duration": 1.23
+  },
+  {
+   "id": "10-bonne-reponse-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "10",
+   "text": "Bonne réponse. Oui. Le texte voté le 26 octobre 2026 prévoit des dispositions sur le permis et l’assurance moto. Au 18 novembre 2026, sa promulgation et ses modalités d’application restent à confirmer.",
+   "spoken": null,
+   "path": "audio/fr/quiz/10-bonne-reponse-01.mp3",
+   "duration": 16.09
+  },
+  {
+   "id": "10-mauvaise-reponse-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "10",
+   "text": "Pas tout à fait. Non. Le texte voté le 26 octobre 2026 prévoit des dispositions sur le permis et l’assurance moto. Au 18 novembre 2026, sa promulgation et ses modalités d’application restent à confirmer. Réponse attendue : « Permis et assurance moto ».",
+   "spoken": "Pas tout à fait. Non. Le texte voté le 26 octobre 2026 prévoit des dispositions sur le permis et l’assurance moto. Au 18 novembre 2026, sa promulgation et ses modalités d’application restent à confirmer. Réponse attendue : Permis et assurance moto .",
+   "path": "audio/fr/quiz/10-mauvaise-reponse-01.mp3",
+   "duration": 19.23
+  },
+  {
+   "id": "11-question-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "11",
+   "text": "Tous les accidents de trajet sont-ils couverts par la CNSS ?",
+   "spoken": null,
+   "path": "audio/fr/quiz/11-question-01.mp3",
+   "duration": 3.32
+  },
+  {
+   "id": "11-option-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "11",
+   "text": "Oui, toujours",
+   "spoken": null,
+   "path": "audio/fr/quiz/11-option-01.mp3",
+   "duration": 1.49
+  },
+  {
+   "id": "11-option-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "11",
+   "text": "Non, selon les conditions",
+   "spoken": null,
+   "path": "audio/fr/quiz/11-option-02.mp3",
+   "duration": 2.19
+  },
+  {
+   "id": "11-bonne-reponse-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "11",
+   "text": "Bonne réponse. Oui. La reconnaissance dépend de la situation de la personne et des conditions du trajet — par exemple, l’absence de détour pour un motif personnel.",
+   "spoken": "Bonne réponse. Oui. La reconnaissance dépend de la situation de la personne et des conditions du trajet, par exemple, l’absence de détour pour un motif personnel.",
+   "path": "audio/fr/quiz/11-bonne-reponse-01.mp3",
+   "duration": 11.08
+  },
+  {
+   "id": "11-mauvaise-reponse-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "11",
+   "text": "Pas tout à fait. Non, pas toujours. La reconnaissance dépend de la situation de la personne et des conditions du trajet — un détour personnel peut l’empêcher. Réponse attendue : « Non, selon les conditions ».",
+   "spoken": "Pas tout à fait. Non, pas toujours. La reconnaissance dépend de la situation de la personne et des conditions du trajet, un détour personnel peut l’empêcher. Réponse attendue : Non, selon les conditions .",
+   "path": "audio/fr/quiz/11-mauvaise-reponse-01.mp3",
+   "duration": 13.35
+  },
+  {
+   "id": "fin-a-retenir-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "fin",
+   "text": "À retenir.",
+   "spoken": null,
+   "path": "audio/fr/endings/fin-a-retenir-01.mp3",
+   "duration": 1.1
+  },
+  {
+   "id": "fin-a-retenir-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "fin",
+   "text": "Où s’arrêter : au rouge, avant la ligne d’arrêt, même si la voie semble libre.",
+   "spoken": null,
+   "path": "audio/fr/endings/fin-a-retenir-02.mp3",
+   "duration": 5.38
+  },
+  {
+   "id": "fin-a-retenir-03",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "fin",
+   "text": "Pourquoi Joseph ne voyait pas la voiture : le minibus arrêté à l’angle cachait la rue de droite.",
+   "spoken": null,
+   "path": "audio/fr/endings/fin-a-retenir-03.mp3",
+   "duration": 5.96
+  },
+  {
+   "id": "fin-a-retenir-04",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "fin",
+   "text": "Assurance moto ≠ CNSS : la responsabilité civile couvre les dommages causés aux autres ; la CNSS peut reconnaître certains accidents de trajet, selon la situation et les conditions.",
+   "spoken": "Assurance moto n’est pas la CNSS : la responsabilité civile couvre les dommages causés aux autres ; la CNSS peut reconnaître certains accidents de trajet, selon la situation et les conditions.",
+   "path": "audio/fr/endings/fin-a-retenir-04.mp3",
+   "duration": 11.68
+  },
+  {
+   "id": "tutoriel-tuto-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "tutoriel",
+   "text": "Écouter. Le haut-parleur fait entendre la consigne.",
+   "spoken": null,
+   "path": "audio/fr/instructions/tutoriel-tuto-01.mp3",
+   "duration": 4.0
+  },
+  {
+   "id": "tutoriel-tuto-02",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "tutoriel",
+   "text": "Choisir. Touche une des deux réponses.",
+   "spoken": null,
+   "path": "audio/fr/instructions/tutoriel-tuto-02.mp3",
+   "duration": 3.08
+  },
+  {
+   "id": "tutoriel-tuto-03",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "tutoriel",
+   "text": "Continuer. La flèche passe à la suite.",
+   "spoken": null,
+   "path": "audio/fr/instructions/tutoriel-tuto-03.mp3",
+   "duration": 3.0
+  },
+  {
+   "id": "menu-exemple-01",
+   "character": "Narratrice",
+   "voice": "narratrice",
+   "scene": "menu",
+   "text": "Bonjour. Tu vas suivre Joseph, un matin, au carrefour de la Marina.",
+   "spoken": null,
+   "path": "audio/fr/instructions/menu-exemple-01.mp3",
+   "duration": 5.12
+  }
+ ]
+}

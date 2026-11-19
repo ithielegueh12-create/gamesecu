@@ -21,6 +21,7 @@
     </div>
     <div class="top-right">
       <span class="clock" id="clock" aria-label="Heure dans le récit">7 h 52</span>
+      <button id="btn-voice" class="icon-btn labelled voice-btn" type="button" title="Réécouter la dernière intervention (touche R)"><span class="i"></span><span class="t">Réécouter</span></button>
       <button id="btn-settings" class="icon-btn labelled" type="button" aria-haspopup="dialog"><span class="i"></span><span class="t">Paramètres</span></button>
       <button id="btn-pause" class="icon-btn labelled" type="button" aria-haspopup="dialog" title="Pause (touche Échap)"><span class="i"></span><span class="t">Pause</span></button>
     </div>
@@ -41,8 +42,8 @@
       <span class="who" id="sub-who"></span>
       <p class="text" id="sub-text"></p>
       <div class="fon">
-        <button type="button" class="fon-btn" id="btn-listen" aria-describedby="fon-note"><span class="i"></span><span id="listen-label">Écouter</span></button>
-        <span id="fon-note">Audio fon à enregistrer et à valider</span>
+        <button type="button" class="fon-btn" id="btn-listen" aria-describedby="fon-note"><span class="i"></span><span id="listen-label">Réécouter</span></button>
+        <span id="fon-note"></span>
       </div>
     </div>
     <div id="actions" class="actions" tabindex="-1"></div>
@@ -140,15 +141,16 @@
         <button type="button" class="seg-b" role="radio" aria-checked="false" data-set-lang="fr">Français</button>
         <button type="button" class="seg-b" role="radio" aria-checked="false" data-set-lang="fon">Fon</button>
       </div>
-      <p class="help">Changer de langue ne relance pas la partie. L’interface et les sous-titres restent en français : la narration fon arrivera lorsque les enregistrements auront été validés par une personne locutrice native.</p>
+      <p class="help">Changer de langue ne relance pas la partie. L’interface et les sous-titres restent en français. En fon, la voix française est utilisée tant que les enregistrements fon n’ont pas été réalisés et validés par une personne locutrice native.</p>
       <h3>Son</h3>
       <label class="range"><span>Volume</span><input type="range" id="opt-volume" min="0" max="100" step="5" value="80" aria-describedby="vol-out" /><output id="vol-out">80 %</output></label>
-      <p class="help">Le jeu ne lance aucun son de lui-même : un enregistrement ne se joue qu’après un appui sur « Écouter ».</p>
+      <label class="switch"><input type="checkbox" id="opt-voices" checked /><span class="track" aria-hidden="true"></span><span>Voix des personnages</span></label>
+      <p class="help">Les personnages et la narratrice parlent automatiquement. Voix coupées, le jeu continue avec les sous-titres ; le bouton « Réécouter » reste disponible.</p>
       <button type="button" class="mbtn secondary" id="opt-replay"><span class="i"></span><span>Réécouter les instructions</span></button>
       <p class="help" id="replay-msg" aria-live="polite"></p>
       <h3>Affichage</h3>
       <label class="switch"><input type="checkbox" id="opt-subs" checked /><span class="track" aria-hidden="true"></span><span>Sous-titres</span></label>
-      <p class="help" id="subs-help">Aucun enregistrement n’est encore disponible : sans sous-titres, les répliques ne seront ni lues ni entendues.</p>
+      <p class="help" id="subs-help">Sans sous-titres, les répliques restent entendues grâce aux voix.</p>
       <label class="switch"><input type="checkbox" id="opt-reduced" /><span class="track" aria-hidden="true"></span><span>Réduire les animations</span></label>
       <p class="help">Plans fixes et coupes franches à la place des mouvements de caméra. Activé par défaut si ton appareil le demande.</p>
       <h3>Clavier</h3>
@@ -157,6 +159,7 @@
         <dt><kbd>Entrée</kbd> / <kbd>Espace</kbd></dt><dd>Activer la commande sélectionnée</dd>
         <dt><kbd>1</kbd> / <kbd>2</kbd></dt><dd>Choisir la première ou la seconde réponse</dd>
         <dt><kbd>N</kbd></dt><dd>Action principale (Suivant, Continuer…)</dd>
+        <dt><kbd>R</kbd></dt><dd>Réécouter la dernière intervention</dd>
         <dt><kbd>Retour arrière</kbd></dt><dd>Revenir à l’étape précédente</dd>
         <dt><kbd>M</kbd></dt><dd>Réduire / rétablir les animations</dd>
         <dt><kbd>Échap</kbd></dt><dd>Pause pendant la partie · fermer une fenêtre</dd>

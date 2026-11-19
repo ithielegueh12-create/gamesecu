@@ -8,6 +8,7 @@
 // En attendant, en mode fon, la voix française est utilisée et l'écran le dit.
 // ─────────────────────────────────────────────────────────────
 import manifest from '../public/audio/audio_manifest.json';
+import fonManifest from '../public/audio/fon_manifest.json';
 
 export type Lang = 'fr' | 'fon';
 
@@ -18,20 +19,29 @@ export const LANG_CODE: Record<Lang, string> = { fr: 'fr', fon: 'fon' };
 interface ManifestItem { id: string; character: string; voice: string; scene: string; text: string; path: string; duration: number }
 const FR = new Map<string, ManifestItem>((manifest.items as ManifestItem[]).map((i) => [i.id, i]));
 
-/** Voix fon validées : identifiant du script → chemin relatif (ex. 'audio/fon/narrator/01-narratrice-01.mp3'). Vide pour l'instant. */
-export const FON_FILES: Record<string, string> = {};
+/**
+ * Voix fon enregistrées par l'équipe : identifiant du script → fichier.
+ * Rempli automatiquement depuis public/audio/fon_manifest.json (voicegen/import_fon.py).
+ */
+interface FonItem { id: string; path: string; duration: number; status: string; warnings: string[] }
+const FON = new Map<string, FonItem>((fonManifest.items as FonItem[]).map((i) => [i.id, i]));
+export const FON_FILES: Record<string, string> = Object.fromEntries([...FON].map(([k, v]) => [k, v.path]));
+export const hasFon = (id: string | null | undefined) => !!id && FON.has(id);
+export const FON_COUNT = FON.size;
 
 /** Mention affichée quand une langue n'a pas sa propre voix. */
 export const MISSING_AUDIO: Record<Lang, string> = {
   fr: 'Audio français indisponible',
-  fon: 'Voix fon à enregistrer et à valider · voix française en attendant',
+  fon: 'Voix fon pas encore enregistrée · voix française en attendant',
 };
 
 export interface Resolved { id: string; src: string; duration: number; lang: Lang }
 /** Fichier à lire pour un identifiant, dans la langue demandée (repli sur le français). */
-export function resolveVoice(id: string, lang: Lang): Resolved | null {
+export function resolveVoice(id: string, lang: Lang, frFallback = true): Resolved | null {
   const fr = FR.get(id);
-  if (lang === 'fon' && FON_FILES[id]) return { id, src: './' + FON_FILES[id], duration: fr?.duration ?? 4, lang: 'fon' };
+  const fon = FON.get(id);
+  if (lang === 'fon' && fon) return { id, src: './' + fon.path, duration: fon.duration, lang: 'fon' };
+  if (lang === 'fon' && !frFallback) return null;
   return fr ? { id, src: './' + fr.path, duration: fr.duration, lang: 'fr' } : null;
 }
 export const hasVoice = (id: string | null | undefined) => !!id && FR.has(id);
@@ -50,6 +60,8 @@ export class Voice {
   volume = 0.8;
   enabled = true;
   lang: Lang = 'fr';
+  /** En fon : compléter les passages non enregistrés avec la voix française. */
+  frFallback = true;
   /** Dernière suite lancée (pour « Réécouter »). */
   last: string[] = [];
   /** Journal des identifiants lancés (tests). */
@@ -71,7 +83,7 @@ export class Voice {
     this.last = list;
     if (!this.enabled && !manual) { this.stop(); return false; }
     this.stop();
-    this.queue = list.map((id) => resolveVoice(id, this.lang)).filter((x): x is Resolved => !!x);
+    this.queue = list.map((id) => resolveVoice(id, this.lang, this.frFallback)).filter((x): x is Resolved => !!x);
     this.next();
     return true;
   }

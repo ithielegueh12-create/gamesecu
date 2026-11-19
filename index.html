@@ -33,6 +33,7 @@
     <div class="phone-head"><span class="phone-i"></span><span>Message vocal · Responsable</span><span class="phone-time">7 h 52</span></div>
     <p class="phone-text"></p>
     <div class="phone-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <button type="button" class="phone-replay" id="phone-replay"><span class="i"></span><span>Réécouter le message</span></button>
   </aside>
 
   <section id="card" class="card" hidden aria-live="polite"></section>
@@ -145,6 +146,8 @@
       <h3>Son</h3>
       <label class="range"><span>Volume</span><input type="range" id="opt-volume" min="0" max="100" step="5" value="80" aria-describedby="vol-out" /><output id="vol-out">80 %</output></label>
       <label class="switch"><input type="checkbox" id="opt-voices" checked /><span class="track" aria-hidden="true"></span><span>Voix des personnages</span></label>
+      <label class="switch"><input type="checkbox" id="opt-frfallback" checked /><span class="track" aria-hidden="true"></span><span>En fon, compléter avec la voix française</span></label>
+      <p class="help">Certains passages n’ont pas encore de voix fon. Activé : ils sont dits en français. Désactivé : ils restent seulement écrits.</p>
       <p class="help">Les personnages et la narratrice parlent automatiquement. Voix coupées, le jeu continue avec les sous-titres ; le bouton « Réécouter » reste disponible.</p>
       <button type="button" class="mbtn secondary" id="opt-replay"><span class="i"></span><span>Réécouter les instructions</span></button>
       <p class="help" id="replay-msg" aria-live="polite"></p>

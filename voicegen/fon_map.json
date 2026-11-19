@@ -1,0 +1,14 @@
+{
+  "_doc": "Correspondance nom de fichier fon (sans préfixe ni numéro de prise) → identifiant de voix du jeu. 'certain' : associé par le nom ET la fonction de la scène ; 'provisoire' : contenu non vérifiable par l'équipe technique (ne parle pas fon), à confirmer par l'équipe.",
+  "00_accueil":  { "id": "menu-accueil",        "folder": "instructions", "voice": "narrateur",   "scene": "menu",  "role": "Accueil : lu quand on écoute la langue Fon sur l'écran d'accueil", "status": "certain" },
+  "00_securite": { "id": "menu-securite",       "folder": "instructions", "voice": "narrateur",   "scene": "menu",  "role": "Consignes de sécurité : lues juste après l'accueil fon", "status": "provisoire" },
+  "01_retard":   { "id": "01-responsable-01",   "folder": "characters",   "voice": "responsable", "scene": "01",    "role": "Message vocal du responsable (apparition du téléphone)", "status": "certain" },
+  "03_choix":    { "id": "03-narratrice-01",    "folder": "narrator",     "voice": "narrateur",   "scene": "03",    "role": "Question du choix", "status": "certain" },
+  "03_option_a": { "id": "03-choix-01",         "folder": "instructions", "voice": "narrateur",   "scene": "03",    "role": "Option A : J'attends le vert", "status": "certain" },
+  "03_option_b": { "id": "03-choix-02",         "folder": "instructions", "voice": "narrateur",   "scene": "03",    "role": "Option B : Je passe au rouge", "status": "certain" },
+  "04a_attente": { "id": "04a-narratrice-01",   "folder": "narrator",     "voice": "narrateur",   "scene": "04a",   "role": "Joseph s'arrête et attend au rouge (1re narration de 04A)", "status": "provisoire" },
+  "09_question": { "id": "09-question-01",      "folder": "quiz",         "voice": "narrateur",   "scene": "09",    "role": "Question 1 du quiz", "status": "certain" },
+  "09_option_a": { "id": "09-option-01",        "folder": "quiz",         "voice": "narrateur",   "scene": "09",    "role": "Réponse proposée : J'attends le vert", "status": "certain" },
+  "09_option_b": { "id": "09-option-02",        "folder": "quiz",         "voice": "narrateur",   "scene": "09",    "role": "Réponse proposée : Je passe", "status": "certain" },
+  "09_correct":  { "id": "09-bonne-reponse-01", "folder": "quiz",         "voice": "narrateur",   "scene": "09",    "role": "Retour après bonne réponse", "status": "certain" }
+}

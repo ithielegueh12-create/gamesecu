@@ -1,0 +1,265 @@
+{
+ "language": "fon",
+ "validated_by_native_speaker": "à confirmer par l’équipe",
+ "count": 10,
+ "items": [
+  {
+   "id": "menu-accueil",
+   "source": "525031cb-00_accueil_fon_01.wav",
+   "path": "audio/fon/instructions/00_accueil_fon_01.mp3",
+   "duration": 9.35,
+   "voice": "narrateur",
+   "scene": "menu",
+   "role": "Accueil : lu quand on écoute la langue Fon sur l'écran d'accueil",
+   "status": "certain",
+   "french_text": null,
+   "qc_source": {
+    "duree": 11.25,
+    "ecretes": 0,
+    "bruit_db": -66.5,
+    "parole_db": -16.6
+   },
+   "qc_final": {
+    "duree": 9.35,
+    "ecretes": 0,
+    "bruit_db": -59.9,
+    "parole_db": -12.4
+   },
+   "warnings": []
+  },
+  {
+   "id": "menu-securite",
+   "source": "a62c2c72-00_securite_fon_01.wav",
+   "path": "audio/fon/instructions/00_securite_fon_01.mp3",
+   "duration": 10.94,
+   "voice": "narrateur",
+   "scene": "menu",
+   "role": "Consignes de sécurité : lues juste après l'accueil fon",
+   "status": "provisoire",
+   "french_text": null,
+   "qc_source": {
+    "duree": 13.88,
+    "ecretes": 0,
+    "bruit_db": -67.1,
+    "parole_db": -25.1
+   },
+   "qc_final": {
+    "duree": 10.94,
+    "ecretes": 0,
+    "bruit_db": -57.3,
+    "parole_db": -13.7
+   },
+   "warnings": [
+    "association provisoire : contenu à confirmer par l’équipe"
+   ]
+  },
+  {
+   "id": "03-narratrice-01",
+   "source": "7faa9b5a-03_choix_fon_01.wav",
+   "path": "audio/fon/narrator/03_choix_fon_01.mp3",
+   "duration": 4.9,
+   "voice": "narrateur",
+   "scene": "03",
+   "role": "Question du choix",
+   "status": "certain",
+   "french_text": "Joseph arrive à la ligne d’arrêt. Son feu est rouge. Que fait-il ?",
+   "qc_source": {
+    "duree": 5.77,
+    "ecretes": 0,
+    "bruit_db": -74.0,
+    "parole_db": -22.1
+   },
+   "qc_final": {
+    "duree": 4.9,
+    "ecretes": 0,
+    "bruit_db": -62.8,
+    "parole_db": -13.4
+   },
+   "warnings": []
+  },
+  {
+   "id": "03-choix-01",
+   "source": "d59a6022-03_option_a_fon_01.wav",
+   "path": "audio/fon/instructions/03_option_a_fon_01.mp3",
+   "duration": 2.87,
+   "voice": "narrateur",
+   "scene": "03",
+   "role": "Option A : J'attends le vert",
+   "status": "certain",
+   "french_text": "J’attends le vert",
+   "qc_source": {
+    "duree": 5.07,
+    "ecretes": 0,
+    "bruit_db": -74.4,
+    "parole_db": -21.7
+   },
+   "qc_final": {
+    "duree": 2.87,
+    "ecretes": 0,
+    "bruit_db": -48.0,
+    "parole_db": -12.3
+   },
+   "warnings": []
+  },
+  {
+   "id": "03-choix-02",
+   "source": "79332512-03_option_b_fon_01.wav",
+   "path": "audio/fon/instructions/03_option_b_fon_01.mp3",
+   "duration": 2.22,
+   "voice": "narrateur",
+   "scene": "03",
+   "role": "Option B : Je passe au rouge",
+   "status": "certain",
+   "french_text": "Je passe au rouge",
+   "qc_source": {
+    "duree": 2.47,
+    "ecretes": 209,
+    "bruit_db": -180.0,
+    "parole_db": -11.9
+   },
+   "qc_final": {
+    "duree": 2.22,
+    "ecretes": 9,
+    "bruit_db": -48.2,
+    "parole_db": -13.9
+   },
+   "warnings": [
+    "original saturé (209 échantillons écrêtés) : réparé au mieux, réenregistrement conseillé"
+   ]
+  },
+  {
+   "id": "04a-narratrice-01",
+   "source": "f2932342-04a_attente_fon_01.wav",
+   "path": "audio/fon/narrator/04a_attente_fon_01.mp3",
+   "duration": 10.55,
+   "voice": "narrateur",
+   "scene": "04a",
+   "role": "Joseph s'arrête et attend au rouge (1re narration de 04A)",
+   "status": "provisoire",
+   "french_text": "Joseph s’arrête avant la ligne.",
+   "qc_source": {
+    "duree": 11.27,
+    "ecretes": 0,
+    "bruit_db": -71.4,
+    "parole_db": -18.7
+   },
+   "qc_final": {
+    "duree": 10.55,
+    "ecretes": 0,
+    "bruit_db": -63.5,
+    "parole_db": -12.7
+   },
+   "warnings": [
+    "association provisoire : contenu à confirmer par l’équipe"
+   ]
+  },
+  {
+   "id": "09-bonne-reponse-01",
+   "source": "d99015d3-09_correct_fon_01.wav",
+   "path": "audio/fon/quiz/09_correct_fon_01.mp3",
+   "duration": 8.62,
+   "voice": "narrateur",
+   "scene": "09",
+   "role": "Retour après bonne réponse",
+   "status": "certain",
+   "french_text": "Bonne réponse. Oui. On s’arrête avant la ligne : un minibus, un camion ou un mur peut cacher un véhicule qui arrive.",
+   "qc_source": {
+    "duree": 9.07,
+    "ecretes": 0,
+    "bruit_db": -134.1,
+    "parole_db": -11.9
+   },
+   "qc_final": {
+    "duree": 8.62,
+    "ecretes": 0,
+    "bruit_db": -112.8,
+    "parole_db": -11.8
+   },
+   "warnings": []
+  },
+  {
+   "id": "09-option-01",
+   "source": "374249d5-09_option_a_fon_01.wav",
+   "path": "audio/fon/quiz/09_option_a_fon_01.mp3",
+   "duration": 2.92,
+   "voice": "narrateur",
+   "scene": "09",
+   "role": "Réponse proposée : J'attends le vert",
+   "status": "certain",
+   "french_text": "J’attends le vert",
+   "qc_source": {
+    "duree": 4.91,
+    "ecretes": 0,
+    "bruit_db": -168.6,
+    "parole_db": -17.8
+   },
+   "qc_final": {
+    "duree": 2.92,
+    "ecretes": 0,
+    "bruit_db": -50.5,
+    "parole_db": -12.4
+   },
+   "warnings": []
+  },
+  {
+   "id": "09-option-02",
+   "source": "496f5007-09_option_b_fon_01.wav",
+   "path": "audio/fon/quiz/09_option_b_fon_01.mp3",
+   "duration": 0.89,
+   "voice": "narrateur",
+   "scene": "09",
+   "role": "Réponse proposée : Je passe",
+   "status": "certain",
+   "french_text": "Je passe",
+   "qc_source": {
+    "duree": 0.77,
+    "ecretes": 3,
+    "bruit_db": -34.1,
+    "parole_db": -12.3
+   },
+   "qc_final": {
+    "duree": 0.89,
+    "ecretes": 0,
+    "bruit_db": -111.9,
+    "parole_db": -17.2
+   },
+   "warnings": [
+    "original saturé (3 échantillons écrêtés) : réparé au mieux, réenregistrement conseillé",
+    "très court (0.77 s) : vérifier que la phrase n'est pas coupée",
+    "bruit de fond audible (-34.1 dB)"
+   ]
+  },
+  {
+   "id": "09-question-01",
+   "source": "b8c2d558-09_question_fon_01.wav",
+   "path": "audio/fon/quiz/09_question_fon_01.mp3",
+   "duration": 4.93,
+   "voice": "narrateur",
+   "scene": "09",
+   "role": "Question 1 du quiz",
+   "status": "certain",
+   "french_text": "Le feu est rouge. La voie semble libre. Que fais-tu ?",
+   "qc_source": {
+    "duree": 6.37,
+    "ecretes": 0,
+    "bruit_db": -160.9,
+    "parole_db": -20.6
+   },
+   "qc_final": {
+    "duree": 4.93,
+    "ecretes": 1,
+    "bruit_db": -152.1,
+    "parole_db": -12.8
+   },
+   "warnings": []
+  }
+ ],
+ "missing_expected": [
+  {
+   "file": "01_retard_fon",
+   "id": "01-responsable-01",
+   "role": "Message vocal du responsable (apparition du téléphone)"
+  }
+ ],
+ "unmatched_files": []
+}

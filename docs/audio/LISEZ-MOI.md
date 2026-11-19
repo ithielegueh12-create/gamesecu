@@ -35,17 +35,17 @@ Prérequis : Python 3, `pip install piper-tts`, ffmpeg, et les modèles Piper `f
 `fr_FR-tom-medium`, `fr_FR-upmc-medium` (.onnx + .onnx.json) dans un dossier indiqué par la variable
 `PIPER_VOICES`.
 
-## Fon — à enregistrer et à valider
+## Fon — enregistrements de l'équipe
 
-Aucune voix fon n'existe et aucune traduction n'a été fabriquée. En mode fon, la voix française est
-utilisée et l'écran affiche « Voix fon à enregistrer et à valider · voix française en attendant ».
+Les fichiers fon fournis sont importés par `python3 voicegen/import_fon.py <dossier>` :
+noms reconnus `NN_fonction_fon[_prise].wav|m4a|mp3|ogg` (préfixe ignoré, la prise la plus récente l'emporte),
+correspondance dans `voicegen/fon_map.json`, traitement (mono, réparation d'écrêtage, silences réduits,
+volume −18 LUFS comme le français), sortie dans `audio/fon/<dossier>/` et `audio/fon_manifest.json`
+(source, durée, contrôles qualité, avertissements, fichiers attendus absents).
 
-Pour ajouter les voix fon :
+Le jeu utilise la voix fon partout où un fichier existe. Ailleurs, la voix française prend le relais
+(réglage « En fon, compléter avec la voix française », désactivable : le passage reste alors seulement écrit).
 
-1. faire traduire et enregistrer chaque entrée de `audio_manifest.json` par une personne locutrice native ;
-2. faire valider chaque enregistrement par une seconde personne locutrice native ;
-3. déposer les fichiers dans `audio/fon/<même dossier>/<même id>.mp3` ;
-4. déclarer chaque fichier dans `FON_FILES` (src/audio.ts) :
-   `'01-narratrice-01': 'audio/fon/narrator/01-narratrice-01.mp3'`.
-
-Une entrée fon absente retombe automatiquement sur la voix française : on peut livrer le fon progressivement.
+Pour ajouter une voix fon : déposer le fichier avec le bon nom dans le dossier source, ajouter sa ligne
+dans `fon_map.json` si elle n'y est pas (identifiant = colonne `id` de `audio_manifest.json`), relancer l'import puis `npm run build`.
+Aucun texte fon n'est écrit dans le jeu : seules des voix enregistrées par l'équipe sont diffusées.

@@ -3,7 +3,7 @@ import './style.css';
 import { World } from './world';
 import { SHOTS, ShotId, Shot } from './shots';
 import { PICTO, ICON, TUTO_ART } from './pictos';
-import { Lang, LANG_LABEL, LANG_CODE, MISSING_AUDIO, Voice } from './audio';
+import { Lang, LANG_LABEL, LANG_CODE, MISSING_AUDIO, Voice, hasFon, FON_COUNT } from './audio';
 import { lineVoiceId, V_CHOICES, V_CARD_06, V_CARD_07, V_CARD_08, V_QUIZ, V_FIN, V_TUTO, V_EXAMPLE } from './voice-script';
 import {
   STEPS, StepId, Branch, Line, Cue, SPEAKER_LABEL, nextStep,
@@ -146,9 +146,22 @@ function updateListen() {
   voiceBtn.disabled = voice.last.length === 0; voiceBtn.classList.toggle('speaking', voice.speaking);
   voiceBtn.setAttribute('aria-label', voice.speaking ? 'Voix en cours — relancer depuis le début' : 'Réécouter la dernière intervention');
   $('listen-label').textContent = voice.speaking ? 'En cours…' : 'Réécouter';
-  $('fon-note').textContent = l === 'fon' ? MISSING_AUDIO.fon : '';
+  const cl = voice.currentLang;
+  $('fon-note').textContent = l !== 'fon' ? '' : cl === 'fon' ? 'Voix fon' : cl === 'fr' ? MISSING_AUDIO.fon : (currentLine && !hasFon(lineVoiceId(currentLine)) ? 'Voix fon pas encore enregistrée' : '');
+  ui.phone.classList.toggle('playing', voice.current === MSG_ID && voice.speaking);
 }
 voice.onChange = updateListen;
+const MSG_ID = lineVoiceId(MSG_RESPONSABLE);
+const phoneReplay = $<HTMLButtonElement>('phone-replay');
+phoneReplay.querySelector('.i')!.innerHTML = ICON.speaker;
+phoneReplay.addEventListener('click', () => voice.speak([MSG_ID], true));
+/** Bouton « écouter » distinct du bouton qui valide : il ne fait que lire l'audio. */
+function listenButton(id: string, label: string, cls: string) {
+  return `<button type="button" class="${cls}" data-listen="${id}" aria-label="Écouter : ${label.replace(/"/g, '&quot;')}">${ICON.speaker}<span>Écouter</span></button>`;
+}
+function wireListen(root: HTMLElement) {
+  root.querySelectorAll<HTMLButtonElement>('[data-listen]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); voice.speak([b.dataset.listen!], true); }));
+}
 listenBtn.addEventListener('click', () => voice.replay());
 document.querySelector('.phone-head .phone-i')!.innerHTML = ICON.phone;
 
@@ -301,8 +314,9 @@ function enter(step: StepId) {
       say(LINE_03, false, V_CHOICES);
       ui.actions.className = 'actions choices';
       ui.actions.innerHTML = `
-        <button type="button" class="choice wait" data-choice="A">${ICON.hand}<span>${CHOICE_WAIT}</span><span class="k" aria-hidden="true">1</span></button>
-        <button type="button" class="choice go" data-choice="B">${ICON.go}<span>${CHOICE_GO}</span><span class="k" aria-hidden="true">2</span></button>`;
+        <div class="choice-wrap"><button type="button" class="choice wait" data-choice="A">${ICON.hand}<span>${CHOICE_WAIT}</span><span class="k" aria-hidden="true">1</span></button>${listenButton(V_CHOICES[0], CHOICE_WAIT, 'choice-listen')}</div>
+        <div class="choice-wrap"><button type="button" class="choice go" data-choice="B">${ICON.go}<span>${CHOICE_GO}</span><span class="k" aria-hidden="true">2</span></button>${listenButton(V_CHOICES[1], CHOICE_GO, 'choice-listen')}</div>`;
+      wireListen(ui.actions);
       ui.actions.querySelectorAll<HTMLButtonElement>('[data-choice]').forEach((b) =>
         b.addEventListener('click', () => choose(b.dataset.choice as Branch)));
       primaryAction = null;
@@ -458,11 +472,12 @@ function renderQuiz(qi: number) {
     <div class="card-body">
       <p class="quiz-q" id="quiz-q">${q.question}</p>
       <div class="opts" role="group" aria-labelledby="quiz-q">
-        ${q.options.map((o, i) => `<button type="button" class="opt" data-i="${i}" aria-pressed="false"><span class="mark" aria-hidden="true"></span><span>${o}</span><span class="k" aria-hidden="true">${i + 1}</span></button>`).join('')}
+        ${q.options.map((o, i) => `<div class="opt-row"><button type="button" class="opt" data-i="${i}" aria-pressed="false"><span class="mark" aria-hidden="true"></span><span>${o}</span><span class="k" aria-hidden="true">${i + 1}</span></button>${listenButton(V_QUIZ[qi].options[i], o, 'opt-listen')}</div>`).join('')}
       </div>
       <div class="fb" aria-live="assertive"></div>
     </div>`);
   const token = stepToken;
+  wireListen(ui.card);
   const opts = Array.from(ui.card.querySelectorAll<HTMLButtonElement>('.opt'));
   const answer = (i: number) => {
     if (token !== stepToken || opts[0].disabled) return;
@@ -527,7 +542,7 @@ function setLang(l: Lang) {
   document.querySelectorAll<HTMLButtonElement>('[data-set-lang]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.setLang === l)));
   langGroup.classList.remove('attention');
   langMsg.textContent = l === 'fon'
-    ? 'Fon choisi. Les textes et les voix restent en français pour l’instant ; la narration fon sera ajoutée une fois enregistrée et validée.'
+    ? `Fon choisi. ${FON_COUNT} passages sont dits en fon ; les autres restent en français en attendant leur enregistrement. Les textes affichés restent en français.`
     : 'Français choisi.';
   updateListen();
 }
@@ -544,9 +559,16 @@ langGroup.addEventListener('keydown', (e) => {
 document.querySelectorAll<HTMLButtonElement>('.lang-listen').forEach((b) => {
   const l = b.dataset.lang as Lang;
   b.querySelector('.i')!.innerHTML = ICON.speaker;
-  if (l === 'fon') { b.disabled = true; b.querySelector('.lang-listen-t')!.textContent = 'Exemple fon à enregistrer'; b.setAttribute('aria-label', 'Voix fon à enregistrer et à valider'); }
-  else { b.querySelector('.lang-listen-t')!.textContent = 'Écouter un exemple'; b.setAttribute('aria-label', 'Écouter un exemple de voix en français'); }
-  b.addEventListener('click', () => voice.speak([V_EXAMPLE], true));
+  if (l === 'fon') {
+    const ok = hasFon('menu-accueil');
+    b.disabled = !ok;
+    b.querySelector('.lang-listen-t')!.textContent = ok ? 'Écouter l’accueil' : 'Accueil fon à enregistrer';
+    b.setAttribute('aria-label', ok ? 'Écouter l’accueil en fon' : 'Accueil fon à enregistrer');
+    b.addEventListener('click', () => { const prev = voice.lang; voice.lang = 'fon'; voice.speak(['menu-accueil', hasFon('menu-securite') ? 'menu-securite' : null], true); voice.lang = prev; });
+  } else {
+    b.querySelector('.lang-listen-t')!.textContent = 'Écouter un exemple'; b.setAttribute('aria-label', 'Écouter un exemple de voix en français');
+    b.addEventListener('click', () => { const prev = voice.lang; voice.lang = 'fr'; voice.speak([V_EXAMPLE], true); voice.lang = prev; });
+  }
 });
 
 // ── Menu principal ───────────────────────────────────────────
@@ -653,6 +675,9 @@ $('p-menu').addEventListener('click', () => showMenu());
 // ── Paramètres ───────────────────────────────────────────────
 const optVol = $<HTMLInputElement>('opt-volume'), optSubs = $<HTMLInputElement>('opt-subs'), optVoices = $<HTMLInputElement>('opt-voices');
 optVoices.checked = voice.enabled;
+const optFb = $<HTMLInputElement>('opt-frfallback');
+voice.frFallback = store.get('frfallback') !== '0'; optFb.checked = voice.frFallback;
+optFb.addEventListener('change', () => { voice.frFallback = optFb.checked; store.set('frfallback', optFb.checked ? '1' : '0'); });
 optVoices.addEventListener('change', () => { voice.setEnabled(optVoices.checked); store.set('voices', optVoices.checked ? '1' : '0'); updateListen(); });
 optVol.value = String(Math.round(voice.volume * 100)); $('vol-out').textContent = optVol.value + ' %';
 optVol.addEventListener('input', () => { voice.setVolume(Number(optVol.value) / 100); $('vol-out').textContent = optVol.value + ' %'; store.set('volume', optVol.value); });

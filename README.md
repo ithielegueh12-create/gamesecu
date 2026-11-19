@@ -135,9 +135,15 @@ Le récit est séparé de l’affichage : pour modifier un texte, on ne touche q
 - **Remplacer par des voix humaines** : déposer un MP3 au même chemin. Régénérer après modification d’un texte : `npm run voice:build` (voir `public/audio/LISEZ-MOI.md`).
 - **Licences** : le modèle « upmc » (policier, responsable) est sous licence CC BY-NC-SA 4.0 (usage non commercial) ; vérifier les fiches des modèles avant une diffusion publique.
 
-## Narration en fon
+## Narration en fon (v6)
 
-Aucune voix fon et aucune traduction fabriquée. En mode fon, la voix française est utilisée et l’écran affiche **« Voix fon à enregistrer et à valider · voix française en attendant »**. Les voix fon validées par une personne locutrice native se branchent dans `FON_FILES` (`src/audio.ts`), avec les mêmes identifiants que le manifeste ; une entrée absente retombe sur le français.
+10 enregistrements fon de l'équipe intégrés (accueil, consignes, scène 03 question + 2 options, 04A attente, quiz 09 question + 2 options + bonne réponse). Liste, contrôles et avertissements : `public/audio/fon_manifest.json` ; import : `voicegen/import_fon.py` + `voicegen/fon_map.json`.
+
+- Voix fon jouée partout où un fichier existe ; ailleurs, voix française en attendant (désactivable dans Paramètres). Le sous-titre indique la langue réellement entendue.
+- Menu : « Écouter l'accueil » (fon) lit l'accueil puis les consignes ; « Commencer » reste disponible.
+- Scène 03 et quiz : chaque option a son propre bouton « Écouter », séparé du bouton qui valide ; écouter ne choisit rien.
+- Scène 01 : téléphone avec ondes animées pendant le message et bouton « Réécouter le message ».
+- Aucun texte fon n'est fabriqué : interface et sous-titres restent en français.
 
 ## Statut juridique affiché (vérifié le 18 novembre 2026)
 

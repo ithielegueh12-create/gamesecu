@@ -211,3 +211,118 @@ kbd { font: 700 13px/1 var(--font); border: 1px solid var(--line); border-bottom
   body.quiz .card { max-height: calc(100% - 70px - 90px - var(--safe-b)); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ═════════════════════════════════════════════════════════════
+   Menu principal, tutoriel, pause (v4)
+   Le menu se pose sur la scène 3D réelle : un voile marine à gauche
+   (ordinateur) ou en haut et en bas (téléphone) garantit la lisibilité.
+   ═════════════════════════════════════════════════════════════ */
+body.mode-menu .top, body.mode-menu .progress, body.mode-menu .bottom,
+body.mode-menu #card, body.mode-menu #phone, body.mode-menu #labels, body.mode-menu #flash { display: none !important; }
+body.mode-tuto .top, body.mode-tuto .bottom, body.mode-tuto .progress { visibility: hidden; }
+body.no-subs .subtitle .text, body.no-subs .subtitle .who { display: none; }
+body.no-subs .subtitle { padding-top: var(--s2); padding-bottom: var(--s2); }
+
+.menu { position: fixed; inset: 0; z-index: 8; display: flex; flex-direction: column; justify-content: center; padding: clamp(24px, 5vh, 56px) clamp(24px, 4.5vw, 72px); color: #fff; overflow-y: auto; }
+.menu[hidden] { display: none; }
+.menu-scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(10, 18, 36, .92) 0%, rgba(10, 18, 36, .78) 34%, rgba(10, 18, 36, .1) 62%, rgba(10, 18, 36, 0) 100%); }
+.menu-head, .menu-panel { position: relative; width: min(460px, 100%); }
+.menu-head { width: min(580px, 100%); }
+.menu-head { padding-bottom: 28px; }
+.menu-kicker { margin: 0 0 10px; display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
+.menu-kicker::before { content: ""; width: 28px; height: 4px; border-radius: 2px; background: var(--accent); }
+.menu-title { margin: 0; font-size: clamp(36px, 4.6vw, 58px); line-height: 1.02; font-weight: 900; letter-spacing: -.01em; text-transform: uppercase; text-wrap: balance; text-shadow: 0 2px 24px rgba(0,0,0,.35); }
+.menu-tagline { margin: 14px 0 0; font-size: clamp(18px, 1.8vw, 22px); font-weight: 600; color: rgba(255,255,255,.88); }
+.menu-panel { display: grid; gap: 20px; }
+
+.lang { border: 0; margin: 0; padding: 0; min-width: 0; }
+.lang legend { padding: 0; margin-bottom: 10px; font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.75); }
+.lang-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lang-card { display: grid; border-radius: 10px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.22); overflow: hidden; transition: border-color .15s, background .15s; }
+.lang-card.on { border-color: var(--accent); background: rgba(245,196,0,.14); }
+.lang-pick { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 0 16px; border: 0; background: transparent; color: #fff; text-align: left; font-size: 22px; font-weight: 800; }
+.lang-pick::before { content: ""; width: 22px; height: 22px; flex: none; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.7); box-sizing: border-box; }
+.lang-pick[aria-checked="true"]::before { border: 7px solid var(--accent); background: var(--ink); }
+.lang-listen { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border: 0; border-top: 1px solid rgba(255,255,255,.15); background: rgba(0,0,0,.18); color: #fff; font-size: 13px; font-weight: 700; text-align: left; }
+.lang-listen svg { width: 16px; height: 16px; flex: none; }
+.lang-listen:disabled { color: rgba(255,255,255,.62); cursor: default; }
+.lang-msg { min-height: 1.4em; margin: 10px 0 0; font-size: 14px; line-height: 1.4; color: rgba(255,255,255,.85); }
+.lang.attention .lang-card { border-color: var(--accent); animation: nudge .45s ease-in-out 2; }
+.lang.attention .lang-msg { color: var(--accent); font-weight: 700; }
+@keyframes nudge { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.menu-actions { display: grid; gap: 10px; }
+.menu-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mbtn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; padding: 0 20px; border-radius: 10px; border: 2px solid transparent; font-size: 17px; font-weight: 800; }
+.mbtn svg { width: 22px; height: 22px; flex: none; }
+.mbtn[hidden] { display: none; }
+.mbtn.primary { min-height: 68px; background: var(--accent); color: var(--ink); font-size: 22px; letter-spacing: .06em; text-transform: uppercase; box-shadow: 0 6px 24px rgba(245,196,0,.28); flex-wrap: wrap; }
+.mbtn.primary:hover { background: #ffd31a; }
+.mbtn.secondary { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.35); }
+.mbtn.secondary:hover { background: rgba(255,255,255,.18); }
+.mbtn:disabled { opacity: .45; cursor: default; }
+.mbtn-sub { flex-basis: 100%; margin-top: -10px; font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; opacity: .8; }
+#m-start.secondary { min-height: 56px; font-size: 17px; letter-spacing: 0; text-transform: none; }
+.mlink { justify-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 4px; border: 0; background: none; color: rgba(255,255,255,.85); font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.mlink svg { width: 18px; height: 18px; }
+.menu :focus-visible, .tuto :focus-visible, .pause :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; box-shadow: none; }
+
+/* Tutoriel */
+.tuto { position: fixed; inset: 0; z-index: 12; display: grid; place-items: center; padding: 16px; background: rgba(10, 16, 30, .72); }
+.tuto[hidden] { display: none; }
+.tuto-box { width: min(440px, 100%); background: var(--paper); color: var(--ink); border-radius: 14px; padding: 20px 20px 22px; display: grid; justify-items: center; gap: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.tuto-top { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.tuto-count { margin: 0; font-size: 14px; font-weight: 800; color: var(--ink-3); }
+.tuto-skip { min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-size: 15px; font-weight: 700; }
+.tuto-art { width: 100%; height: 170px; display: grid; place-items: center; border-radius: 10px; background: var(--ink); color: var(--ink); }
+.tuto-art svg { width: auto; height: 150px; --accent: #f5c400; color: #13213c; }
+.tuto-h { margin: 6px 0 0; font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.tuto-p { margin: 0; font-size: 19px; font-weight: 600; text-align: center; line-height: 1.35; }
+.tuto-listen { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 2px solid var(--ink); background: #fff; font-size: 15px; font-weight: 800; }
+.tuto-listen svg { width: 22px; height: 22px; }
+.tuto-listen:disabled { border-style: dashed; color: var(--ink-3); border-color: var(--ink-3); cursor: default; }
+.tuto-dots { display: flex; gap: 6px; list-style: none; margin: 4px 0 0; padding: 0; }
+.tuto-dots li { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.tuto-dots li.on { background: var(--ink); width: 26px; border-radius: 5px; }
+.tuto-nav { width: 100%; display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 6px; }
+.tuto .mbtn.secondary { background: #fff; color: var(--ink); border-color: var(--ink); }
+.tuto .mbtn.primary { min-height: 60px; font-size: 19px; }
+
+/* Pause et confirmation */
+dialog.pause { width: min(420px, calc(100vw - 24px)); background: var(--ink); color: #fff; border-radius: 14px; }
+.pause-box { display: grid; gap: 10px; padding: 24px; }
+.pause-box h2 { margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; }
+.pause-box .help { color: rgba(255,255,255,.78); margin: 0 0 6px; }
+.pause-box .help.small { font-size: 13px; margin: 6px 0 0; }
+.pause-box .mbtn { justify-content: flex-start; }
+.pause-box .mbtn.primary { justify-content: center; min-height: 60px; font-size: 19px; }
+
+/* Paramètres */
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
+.seg-b { min-height: 52px; border: 0; background: #fff; font-size: 17px; font-weight: 800; color: var(--ink); }
+.seg-b + .seg-b { border-left: 2px solid var(--ink); }
+.seg-b[aria-checked="true"] { background: var(--accent); }
+.range { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; min-height: 48px; font-weight: 700; }
+.range input { width: 100%; accent-color: var(--ink); height: 32px; }
+.range output { min-width: 4ch; text-align: right; font-variant-numeric: tabular-nums; }
+.dlg-body .mbtn.secondary { justify-self: start; background: #fff; color: var(--ink); border-color: var(--ink); min-height: 48px; font-size: 15px; }
+.subtitle.flash-sub { animation: flashsub 1s ease-out 1; }
+@keyframes flashsub { 0% { box-shadow: 0 0 0 6px var(--accent); } 100% { box-shadow: 0 2px 10px rgba(10,16,30,.25); } }
+.fon-btn:not(:disabled) { border-style: solid; border-color: var(--ink); color: var(--ink); background: #fff; }
+
+@media (max-width: 760px) {
+  .menu { justify-content: space-between; padding: calc(20px + var(--safe-t)) 16px calc(16px + var(--safe-b)); }
+  .menu-scrim { background: linear-gradient(180deg, rgba(10,18,36,.85) 0%, rgba(10,18,36,.35) 26%, rgba(10,18,36,0) 40%, rgba(10,18,36,.55) 55%, rgba(10,18,36,.94) 72%); }
+  .menu-head { padding: 0; width: 100%; }
+  .menu-panel { width: 100%; gap: 14px; }
+  .menu-title { font-size: 30px; }
+  .menu-kicker { font-size: 12px; margin-bottom: 8px; }
+  .menu-tagline { font-size: 17px; margin-top: 8px; }
+  .lang-pick { min-height: 56px; font-size: 19px; }
+  .mbtn.primary { min-height: 60px; font-size: 19px; }
+  .mbtn { min-height: 52px; font-size: 15px; padding: 0 12px; }
+  .tuto-art { height: 140px; } .tuto-art svg { height: 124px; }
+  .tuto-h { font-size: 28px; } .tuto-p { font-size: 17px; }
+}
+@media (max-height: 560px) and (min-width: 761px) { .menu-title { font-size: 34px; } .menu-head { padding-bottom: 12px; } .menu-panel { gap: 12px; } }
+@media (prefers-reduced-motion: reduce) { .lang.attention .lang-card { animation: none; } .subtitle.flash-sub { animation: none; box-shadow: 0 0 0 4px var(--accent); } }

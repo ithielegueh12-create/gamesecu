@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import './style.css';
 import { World } from './world';
 import { SHOTS, ShotId, Shot } from './shots';
-import { PICTO, ICON } from './pictos';
+import { PICTO, ICON, TUTO_ART } from './pictos';
+import { Lang, LANG_LABEL, LANG_CODE, MISSING_AUDIO, AUDIO_SCRIPT, Voice, uiAudio, AudioKey } from './audio';
 import {
   STEPS, StepId, Branch, Line, Cue, SPEAKER_LABEL, nextStep,
   LINES_01, MSG_RESPONSABLE, CUES_02, LINE_03, CHOICE_WAIT, CHOICE_GO,
@@ -40,11 +41,13 @@ stage.appendChild(renderer.domElement);
 const world = new World();
 const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 400);
 
+let baseFov = 52;
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
-  camera.fov = camera.aspect < 0.8 ? 70 : camera.aspect < 1.2 ? 62 : 52;
+  baseFov = camera.aspect < 0.8 ? 70 : camera.aspect < 1.2 ? 62 : 52;
+  camera.fov = baseFov;
   camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', resize); resize();
@@ -62,6 +65,27 @@ function setReduced(v: boolean) {
   try { localStorage.setItem('marina.reduced', v ? '1' : '0'); } catch { /* ignore */ }
 }
 optReduced.addEventListener('change', () => setReduced(optReduced.checked));
+
+const store = {
+  get(k: string) { try { return localStorage.getItem('marina.' + k); } catch { return null; } },
+  set(k: string, v: string | null) { try { if (v === null) localStorage.removeItem('marina.' + k); else localStorage.setItem('marina.' + k, v); } catch { /* stockage indisponible */ } },
+};
+const voice = new Voice();
+let lang: Lang | null = (store.get('lang') as Lang | null);
+if (lang !== 'fr' && lang !== 'fon') lang = null;
+let subs = store.get('subs') !== '0';
+voice.setVolume(Number(store.get('volume') ?? '80') / 100);
+let tutoSeen = store.get('tutoSeen') === '1';
+
+// ─────────────────────────────────────────────────────────────
+// États de l'application : Menu → Tutoriel → Jeu ⇄ Pause → Fin
+// ─────────────────────────────────────────────────────────────
+type Mode = 'menu' | 'tuto' | 'jeu' | 'pause' | 'fin';
+let mode: Mode = 'menu';
+function setMode(m: Mode) {
+  mode = m;
+  for (const k of ['menu', 'tuto', 'jeu', 'pause', 'fin']) document.body.classList.toggle('mode-' + k, k === m);
+}
 
 // ─────────────────────────────────────────────────────────────
 // État du récit
@@ -85,6 +109,7 @@ let stepToken = 0; // invalide les rappels d'une étape quittée
 let frozen = false; // pause de test uniquement
 let camOverride: { pos: THREE.Vector3; look: THREE.Vector3; fov?: number } | null = null; // caméra libre (captures de validation)
 
+let currentLine: Line | null = null;
 function playShot(id: ShotId, opts: { cues?: Cue[]; onEnd?: () => void } = {}) {
   shotId = id; shot = SHOTS[id]; shotT = 0; shotEnded = false;
   cues = opts.cues ?? []; cueIdx = 0;
@@ -104,9 +129,19 @@ const ui = {
   dlgSources: $<HTMLDialogElement>('dlg-sources'), dlgSettings: $<HTMLDialogElement>('dlg-settings'),
 };
 ui.back.innerHTML = ICON.back;
-document.querySelector('#btn-sources .i')!.innerHTML = ICON.book;
 document.querySelector('#btn-settings .i')!.innerHTML = ICON.settings;
 document.querySelector('.fon-btn .i')!.innerHTML = ICON.speaker;
+document.querySelector('#btn-pause .i')!.innerHTML = ICON.pause;
+const listenBtn = $<HTMLButtonElement>('btn-listen');
+/** Bouton « Écouter » du sous-titre : actif seulement si un enregistrement existe dans la langue choisie. */
+function updateListen() {
+  const l: Lang = lang ?? 'fr';
+  const file = currentLine ? currentLine[l] : null;
+  listenBtn.disabled = !file;
+  $('listen-label').textContent = l === 'fon' ? 'Écouter en fon' : 'Écouter';
+  $('fon-note').textContent = file ? '' : MISSING_AUDIO[l];
+}
+listenBtn.addEventListener('click', () => { if (currentLine) voice.play(currentLine[lang ?? 'fr']); });
 document.querySelector('.phone-head .phone-i')!.innerHTML = ICON.phone;
 
 const PATH: StepId[] = ['01', '02', '03', '04A', '05', '06', '07', '08', '09', '10', '11'];
@@ -118,6 +153,8 @@ function renderProgress() {
 }
 
 function say(line: Line | null, rule = false) {
+  currentLine = line;
+  updateListen();
   if (!line) { ui.sub.hidden = true; return; }
   ui.sub.hidden = false;
   ui.sub.className = `subtitle ${line.who}${rule ? ' rule' : ''}`;
@@ -210,9 +247,16 @@ function setClock(text: string, late = false) {
   ui.clock.classList.toggle('late', late);
 }
 
+interface Save { step: StepId; branch: Branch | null; history: State['history'] }
+function saveProgress() { store.set('save', JSON.stringify({ step: state.step, branch: state.branch, history: state.history } as Save)); }
+function loadProgress(): Save | null {
+  try { const v = JSON.parse(store.get('save') ?? 'null'); return v && STEPS[v.step as StepId] ? v : null; } catch { return null; }
+}
+
 function enter(step: StepId) {
   const token = ++stepToken;
   state.step = step;
+  setMode(step === 'fin' ? 'fin' : 'jeu');
   if (step === '01' || step === '02' || step === '03') state.branch = null;
   const def = STEPS[step];
   ui.num.textContent = def.num; ui.title.textContent = def.title;
@@ -223,6 +267,7 @@ function enter(step: StepId) {
   document.body.classList.toggle('quiz', ['09', '10', '11', 'fin'].includes(step));
   showCard(null); setActions([], false); say(null);
   renderProgress();
+  saveProgress();
 
   switch (step) {
     case '01': {
@@ -365,8 +410,9 @@ function enter(step: StepId) {
           </ol>
         </div>`);
       setActions([
-        { label: 'Rejouer', icon: ICON.replay, run: restart },
-        { label: `Essayer l’autre choix (${other === 'A' ? CHOICE_WAIT.toLowerCase() : CHOICE_GO.toLowerCase()})`, kind: 'secondary', run: () => tryOther(other) },
+        { label: `Découvrir l’autre choix (${other === 'A' ? CHOICE_WAIT.toLowerCase() : CHOICE_GO.toLowerCase()})`, icon: ICON.next, run: () => tryOther(other) },
+        { label: 'Rejouer', kind: 'secondary', icon: ICON.replay, run: restart },
+        { label: 'Retour au menu principal', kind: 'secondary', icon: ICON.home, run: showMenu },
         { label: 'Sources', kind: 'secondary', icon: ICON.book, run: openSources },
       ]);
       break;
@@ -446,19 +492,184 @@ $('sources-body').innerHTML = `
   <p class="help">Carrefour, personnages et situations fictifs. Inspiration d’ambiance : la rue à hauteur d’yeux de Cotonou. Ce jeu informe ; il ne remplace ni un avis juridique ni l’avis de la CNSS sur une situation personnelle.</p>`;
 
 function openSources() { ui.dlgSources.showModal(); }
-$('btn-sources').addEventListener('click', openSources);
-$('btn-settings').addEventListener('click', () => ui.dlgSettings.showModal());
+const dlgPause = $<HTMLDialogElement>('dlg-pause'), dlgConfirm = $<HTMLDialogElement>('dlg-confirm');
+function openSettings() { ui.dlgSettings.showModal(); }
+$('btn-settings').addEventListener('click', openSettings);
 document.querySelectorAll<HTMLButtonElement>('[data-close]').forEach((b) => b.addEventListener('click', () => (b.closest('dialog') as HTMLDialogElement).close()));
-[ui.dlgSources, ui.dlgSettings].forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+[ui.dlgSources, ui.dlgSettings, dlgPause, dlgConfirm].forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
 ui.back.addEventListener('click', goBack);
+/** Le temps du récit s'arrête dès qu'une fenêtre est ouverte pendant la partie. */
+const anyDialogOpen = () => ui.dlgSources.open || ui.dlgSettings.open || dlgPause.open || dlgConfirm.open;
+
+// ── Langue ───────────────────────────────────────────────────
+const langMsg = $('lang-msg'), langGroup = $('lang-group');
+function setLang(l: Lang) {
+  lang = l; store.set('lang', l);
+  document.documentElement.lang = LANG_CODE[l];
+  document.querySelectorAll<HTMLButtonElement>('.lang-pick').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.lang === l)));
+  document.querySelectorAll<HTMLElement>('.lang-card').forEach((c) => c.classList.toggle('on', c.dataset.lang === l));
+  document.querySelectorAll<HTMLButtonElement>('[data-set-lang]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.setLang === l)));
+  langGroup.classList.remove('attention');
+  langMsg.textContent = l === 'fon'
+    ? 'Fon choisi. Les textes restent en français pour l’instant ; la narration fon sera ajoutée une fois enregistrée et validée.'
+    : 'Français choisi.';
+  updateListen();
+}
+document.querySelectorAll<HTMLButtonElement>('.lang-pick, [data-set-lang]').forEach((b) =>
+  b.addEventListener('click', () => setLang((b.dataset.lang ?? b.dataset.setLang) as Lang)));
+// Flèches gauche/droite dans le groupe de langues (radiogroupe)
+langGroup.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  const next: Lang = (lang ?? 'fr') === 'fr' ? 'fon' : 'fr'; setLang(next);
+  document.querySelector<HTMLButtonElement>(`.lang-pick[data-lang="${next}"]`)?.focus();
+});
+// Exemples audio : actifs seulement si l'enregistrement existe
+document.querySelectorAll<HTMLButtonElement>('.lang-listen').forEach((b) => {
+  const l = b.dataset.lang as Lang; const file = uiAudio(l, 'exemple');
+  b.querySelector('.i')!.innerHTML = ICON.speaker;
+  if (!file) { b.disabled = true; b.querySelector('.lang-listen-t')!.textContent = l === 'fon' ? 'Exemple fon à enregistrer' : 'Exemple à enregistrer'; b.setAttribute('aria-label', MISSING_AUDIO[l]); }
+  b.addEventListener('click', () => voice.play(file));
+});
+
+// ── Menu principal ───────────────────────────────────────────
+const menuEl = $('menu');
+const mStart = $<HTMLButtonElement>('m-start'), mContinue = $<HTMLButtonElement>('m-continue');
+[['m-start', ICON.play], ['m-continue', ICON.play], ['m-howto', ICON.help], ['m-settings', ICON.settings], ['m-sources', ICON.book],
+ ['p-resume', ICON.play], ['p-restart', ICON.replay], ['p-settings', ICON.settings], ['p-sources', ICON.book], ['p-menu', ICON.home],
+ ['tuto-prev', ICON.prev], ['tuto-next', ICON.next], ['tuto-listen', ICON.speaker], ['opt-replay', ICON.ear]].forEach(([id, ic]) => {
+  const el = document.querySelector(`#${id} .i`); if (el) el.innerHTML = ic;
+});
+function showMenu() {
+  stepToken++; voice.stop();
+  if (dlgPause.open) dlgPause.close();
+  setMode('menu'); menuEl.hidden = false;
+  showCard(null); setActions([], false); say(null); ui.phone.hidden = true; ui.flash.classList.remove('on');
+  document.title = '8 h 00 — Le piège de la Marina';
+  playShot('menu');
+  const save = loadProgress();
+  const resumable = !!save && !(save.step === '01' && save.history.length === 0);
+  mContinue.hidden = !resumable;
+  mStart.classList.toggle('primary', !resumable); mStart.classList.toggle('secondary', resumable);
+  if (save && resumable) $('m-continue-sub').textContent = save.step === 'fin' ? 'Fin du parcours' : `Étape ${STEPS[save.step].num} · ${STEPS[save.step].title}`;
+  (resumable ? mContinue : lang ? mStart : document.querySelector<HTMLButtonElement>('.lang-pick'))?.focus({ preventScroll: true });
+}
+function needLang(): boolean {
+  if (lang) return false;
+  langGroup.classList.remove('attention'); void langGroup.offsetWidth; langGroup.classList.add('attention');
+  langMsg.textContent = 'Choisis d’abord ta langue : Français ou Fon.';
+  document.querySelector<HTMLButtonElement>('.lang-pick')?.focus();
+  return true;
+}
+function beginNewGame() {
+  store.set('save', null);
+  state.history = []; state.branch = null;
+  const go = () => { menuEl.hidden = true; enter('01'); };
+  if (!tutoSeen) openTuto(go); else go();
+}
+mStart.addEventListener('click', () => {
+  if (needLang()) return;
+  const save = loadProgress();
+  if (save && !mContinue.hidden) {
+    $('confirm-text').textContent = `Ta partie en cours (${save.step === 'fin' ? 'fin du parcours' : 'étape ' + STEPS[save.step].num}) sera remplacée par une nouvelle partie.`;
+    dlgConfirm.showModal(); $('c-no').focus();
+  } else beginNewGame();
+});
+$('c-yes').addEventListener('click', () => { dlgConfirm.close(); beginNewGame(); });
+$('c-no').addEventListener('click', () => dlgConfirm.close());
+mContinue.addEventListener('click', () => {
+  if (needLang()) return;
+  const save = loadProgress(); if (!save) return;
+  state.history = save.history; state.branch = save.branch;
+  menuEl.hidden = true; enter(save.step);
+});
+$('m-howto').addEventListener('click', () => openTuto(() => mStart.focus()));
+$('m-settings').addEventListener('click', openSettings);
+$('m-sources').addEventListener('click', openSources);
+
+// ── Tutoriel (3 actions illustrées) ──────────────────────────
+const TUTO: { art: string; h: string; p: string; key: AudioKey }[] = [
+  { art: TUTO_ART.ecouter, h: 'Écouter', p: 'Le haut-parleur fait entendre la consigne.', key: 'tuto-ecouter' },
+  { art: TUTO_ART.choisir, h: 'Choisir', p: 'Touche une des deux réponses.', key: 'tuto-choisir' },
+  { art: TUTO_ART.continuer, h: 'Continuer', p: 'La flèche passe à la suite.', key: 'tuto-continuer' },
+];
+const tutoEl = $('tuto');
+let tutoIdx = 0, tutoDone: (() => void) | null = null, tutoPrevMode: Mode = 'menu';
+function renderTuto() {
+  const s = TUTO[tutoIdx]; const l: Lang = lang ?? 'fr'; const file = uiAudio(l, s.key);
+  $('tuto-art').innerHTML = s.art; $('tuto-h').textContent = s.h; $('tuto-p').textContent = s.p;
+  $('tuto-count').textContent = `${tutoIdx + 1} / ${TUTO.length}`;
+  document.querySelectorAll('#tuto-dots li').forEach((d, i) => d.classList.toggle('on', i === tutoIdx));
+  const lb = $<HTMLButtonElement>('tuto-listen'); lb.disabled = !file;
+  $('tuto-listen-t').textContent = file ? (l === 'fon' ? 'Écouter en fon' : 'Écouter') : MISSING_AUDIO[l];
+  $<HTMLButtonElement>('tuto-prev').disabled = tutoIdx === 0;
+  $('tuto-next-t').textContent = tutoIdx === TUTO.length - 1 ? 'C’est parti' : 'Suivant';
+}
+function openTuto(then: () => void) {
+  tutoPrevMode = mode; tutoDone = then; tutoIdx = 0;
+  setMode('tuto'); tutoEl.hidden = false; renderTuto();
+  $<HTMLButtonElement>('tuto-next').focus();
+}
+function closeTuto() {
+  tutoSeen = true; store.set('tutoSeen', '1'); voice.stop();
+  tutoEl.hidden = true; setMode(tutoPrevMode);
+  const cb = tutoDone; tutoDone = null; cb?.();
+}
+$('tuto-next').addEventListener('click', () => { if (tutoIdx < TUTO.length - 1) { tutoIdx++; renderTuto(); } else closeTuto(); });
+$('tuto-prev').addEventListener('click', () => { if (tutoIdx > 0) { tutoIdx--; renderTuto(); $<HTMLButtonElement>('tuto-next').focus(); } });
+$('tuto-skip').addEventListener('click', closeTuto);
+$('tuto-listen').addEventListener('click', () => voice.play(uiAudio(lang ?? 'fr', TUTO[tutoIdx].key)));
+
+// ── Pause ────────────────────────────────────────────────────
+function openPause() {
+  if (mode !== 'jeu' && mode !== 'fin') return;
+  const d = STEPS[state.step];
+  $('pause-where').textContent = state.step === 'fin' ? 'Fin du parcours' : `Étape ${d.num} · ${d.title}`;
+  pausedFrom = mode; setMode('pause');
+  dlgPause.showModal(); $('p-resume').focus();
+}
+let pausedFrom: Mode = 'jeu';
+dlgPause.addEventListener('close', () => { if (mode === 'pause') setMode(pausedFrom); });
+$('btn-pause').addEventListener('click', openPause);
+$('p-resume').addEventListener('click', () => dlgPause.close());
+$('p-restart').addEventListener('click', () => { dlgPause.close(); enter(state.step); });
+$('p-settings').addEventListener('click', () => { dlgPause.close(); openSettings(); });
+$('p-sources').addEventListener('click', () => { dlgPause.close(); openSources(); });
+$('p-menu').addEventListener('click', () => showMenu());
+
+// ── Paramètres ───────────────────────────────────────────────
+const optVol = $<HTMLInputElement>('opt-volume'), optSubs = $<HTMLInputElement>('opt-subs');
+optVol.value = String(Math.round(voice.volume * 100)); $('vol-out').textContent = optVol.value + ' %';
+optVol.addEventListener('input', () => { voice.setVolume(Number(optVol.value) / 100); $('vol-out').textContent = optVol.value + ' %'; store.set('volume', optVol.value); });
+function setSubs(v: boolean) { subs = v; optSubs.checked = v; document.body.classList.toggle('no-subs', !v); store.set('subs', v ? '1' : '0'); }
+optSubs.addEventListener('change', () => setSubs(optSubs.checked));
+setSubs(subs);
+$('opt-replay').addEventListener('click', () => {
+  const msg = $('replay-msg');
+  if (mode === 'menu' || mode === 'tuto') { ui.dlgSettings.close(); openTuto(() => mStart.focus()); return; }
+  const file = currentLine ? currentLine[lang ?? 'fr'] : null;
+  if (file) { voice.play(file); msg.textContent = 'Lecture de la consigne en cours.'; return; }
+  msg.textContent = 'Pas encore d’enregistrement pour cette consigne : elle reste affichée en sous-titre.';
+  if (!subs) setSubs(true);
+  ui.sub.classList.remove('flash-sub'); void ui.sub.offsetWidth; ui.sub.classList.add('flash-sub');
+});
+ui.dlgSettings.addEventListener('close', () => { $('replay-msg').textContent = ''; });
 
 // ─────────────────────────────────────────────────────────────
 // Clavier
 // ─────────────────────────────────────────────────────────────
 window.addEventListener('keydown', (e) => {
-  if (ui.dlgSources.open || ui.dlgSettings.open) return;
+  if (anyDialogOpen()) return;
   if (e.altKey || e.ctrlKey || e.metaKey) return;
   const k = e.key;
+  if (mode === 'tuto') {
+    if (k === 'Escape') closeTuto();
+    else if (k === 'ArrowRight') $('tuto-next').click();
+    else if (k === 'ArrowLeft') $('tuto-prev').click();
+    return;
+  }
+  if (mode === 'menu') return;
+  if (k === 'Escape') { e.preventDefault(); openPause(); return; }
   if (k === 'Backspace') { e.preventDefault(); goBack(); return; }
   if (k === 'm' || k === 'M') { setReduced(!reduced); return; }
   if (k === '1' || k === '2') {
@@ -477,7 +688,8 @@ const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1);
-  if (frozen) { /* image figée pour les tests */ } else if (!shotEnded) {
+  const holdTime = frozen || mode === 'pause' || ((mode === 'jeu' || mode === 'fin') && anyDialogOpen());
+  if (holdTime) { /* pause : le récit n’avance pas */ } else if (!shotEnded) {
     shotT += dt;
     const done = shotT >= shot.duration;
     if (done) shotT = shot.duration;
@@ -490,9 +702,11 @@ function frame() {
   ui.flash.classList.toggle('on', shotId === 'passB' && shotT > 1.4 && shotT < 2.9);
 
   const portrait = camera.aspect < 0.8;
-  const pose = shot.pose(world, shotT, { reduced, branch: state.branch, portrait });
+  const pose = shot.pose(world, shotT, { reduced, branch: mode === 'menu' ? null : state.branch, portrait });
   camPos.copy(pose.pos); camLook.copy(pose.look);
   camera.up.copy(pose.up ?? UP);
+  const fov = pose.fov ?? baseFov;
+  if (camera.fov !== fov && !camOverride) { camera.fov = fov; camera.updateProjectionMatrix(); }
   if (portrait && (shotId === 'explain' || shotId === 'police')) {
     // en portrait, la carte occupe le haut : on cadre le policier plus bas dans l'image
     camPos.set(3.0, 2.5, -27.0); camLook.set(7.6, 2.0, -35.0);
@@ -510,7 +724,7 @@ function frame() {
 
 // Accès de test (lecture seule + avance rapide déterministe)
 (window as unknown as { __marina: unknown }).__marina = {
-  get step() { return state.step; }, get branch() { return state.branch; },
+  get step() { return state.step; }, get branch() { return state.branch; }, get mode() { return mode; },
   get t() { return shotT; }, get calls() { return renderer.info.render.calls; }, get tris() { return renderer.info.render.triangles; }, get shot() { return shotId; }, get reduced() { return reduced; },
   skip() { if (Number.isFinite(shot.duration)) shotT = shot.duration - 0.01; },
   seek(t: number) { frozen = true; shotT = t; },
@@ -580,5 +794,7 @@ function frame() {
   },
 };
 
-enter('01');
+// Démarrage : toujours sur le menu principal, jamais directement dans le récit.
+if (lang) setLang(lang); else { langMsg.textContent = ''; document.querySelectorAll('[data-set-lang]').forEach((b) => b.setAttribute('aria-checked', 'false')); }
+showMenu();
 requestAnimationFrame(frame);

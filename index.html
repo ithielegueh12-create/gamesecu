@@ -21,8 +21,8 @@
     </div>
     <div class="top-right">
       <span class="clock" id="clock" aria-label="Heure dans le récit">7 h 52</span>
-      <button id="btn-sources" class="icon-btn labelled" type="button" aria-haspopup="dialog"><span class="i"></span><span class="t">Sources</span></button>
-      <button id="btn-settings" class="icon-btn labelled" type="button" aria-haspopup="dialog"><span class="i"></span><span class="t">Réglages</span></button>
+      <button id="btn-settings" class="icon-btn labelled" type="button" aria-haspopup="dialog"><span class="i"></span><span class="t">Paramètres</span></button>
+      <button id="btn-pause" class="icon-btn labelled" type="button" aria-haspopup="dialog" title="Pause (touche Échap)"><span class="i"></span><span class="t">Pause</span></button>
     </div>
   </header>
 
@@ -41,12 +41,91 @@
       <span class="who" id="sub-who"></span>
       <p class="text" id="sub-text"></p>
       <div class="fon">
-        <button type="button" class="fon-btn" disabled aria-describedby="fon-note"><span class="i"></span>Narration en fon</button>
+        <button type="button" class="fon-btn" id="btn-listen" aria-describedby="fon-note"><span class="i"></span><span id="listen-label">Écouter</span></button>
         <span id="fon-note">Audio fon à enregistrer et à valider</span>
       </div>
     </div>
     <div id="actions" class="actions" tabindex="-1"></div>
   </footer>
+
+
+  <!-- ═════════ MENU PRINCIPAL ═════════ -->
+  <section id="menu" class="menu" aria-labelledby="menu-title" hidden>
+    <div class="menu-scrim" aria-hidden="true"></div>
+    <div class="menu-head">
+      <p class="menu-kicker">Carrefour 2026</p>
+      <h1 id="menu-title" class="menu-title">8 h 00 — Le piège de la Marina</h1>
+      <p class="menu-tagline">Chaque décision compte.</p>
+    </div>
+    <div class="menu-panel">
+      <fieldset class="lang" id="lang-group">
+        <legend>Choisis ta langue</legend>
+        <div class="lang-row">
+          <div class="lang-card" data-lang="fr">
+            <button type="button" class="lang-pick" role="radio" aria-checked="false" data-lang="fr"><span class="lang-name">Français</span></button>
+            <button type="button" class="lang-listen" data-lang="fr" aria-label="Écouter un exemple en français"><span class="i"></span><span class="lang-listen-t">Écouter</span></button>
+          </div>
+          <div class="lang-card" data-lang="fon">
+            <button type="button" class="lang-pick" role="radio" aria-checked="false" data-lang="fon"><span class="lang-name">Fon</span></button>
+            <button type="button" class="lang-listen" data-lang="fon" aria-label="Écouter un exemple en fon"><span class="i"></span><span class="lang-listen-t">Écouter</span></button>
+          </div>
+        </div>
+        <p class="lang-msg" id="lang-msg" aria-live="assertive"></p>
+      </fieldset>
+      <div class="menu-actions">
+        <button type="button" class="mbtn primary" id="m-continue" hidden><span class="i"></span><span>Continuer</span><span class="mbtn-sub" id="m-continue-sub"></span></button>
+        <button type="button" class="mbtn primary" id="m-start"><span class="i"></span><span>Commencer</span></button>
+        <div class="menu-row">
+          <button type="button" class="mbtn secondary" id="m-howto"><span class="i"></span><span>Comment jouer ?</span></button>
+          <button type="button" class="mbtn secondary" id="m-settings"><span class="i"></span><span>Paramètres</span></button>
+        </div>
+        <button type="button" class="mlink" id="m-sources"><span class="i"></span><span>Sources et crédits</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ TUTORIEL ═════════ -->
+  <section id="tuto" class="tuto" role="dialog" aria-modal="true" aria-labelledby="tuto-h" hidden>
+    <div class="tuto-box">
+      <div class="tuto-top">
+        <p class="tuto-count" id="tuto-count">1 / 3</p>
+        <button type="button" class="tuto-skip" id="tuto-skip">Passer</button>
+      </div>
+      <div class="tuto-art" id="tuto-art" aria-hidden="true"></div>
+      <h2 class="tuto-h" id="tuto-h">Écouter</h2>
+      <p class="tuto-p" id="tuto-p"></p>
+      <button type="button" class="tuto-listen" id="tuto-listen"><span class="i"></span><span id="tuto-listen-t">Écouter</span></button>
+      <ol class="tuto-dots" id="tuto-dots" aria-hidden="true"><li></li><li></li><li></li></ol>
+      <div class="tuto-nav">
+        <button type="button" class="mbtn secondary" id="tuto-prev"><span class="i"></span><span>Précédent</span></button>
+        <button type="button" class="mbtn primary" id="tuto-next"><span id="tuto-next-t">Suivant</span><span class="i"></span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ PAUSE ═════════ -->
+  <dialog id="dlg-pause" class="pause" aria-labelledby="dlg-pause-h">
+    <div class="pause-box">
+      <h2 id="dlg-pause-h">Pause</h2>
+      <p class="help" id="pause-where"></p>
+      <button type="button" class="mbtn primary" id="p-resume"><span class="i"></span><span>Reprendre</span></button>
+      <button type="button" class="mbtn secondary" id="p-restart"><span class="i"></span><span>Recommencer la scène</span></button>
+      <button type="button" class="mbtn secondary" id="p-settings"><span class="i"></span><span>Paramètres</span></button>
+      <button type="button" class="mbtn secondary" id="p-sources"><span class="i"></span><span>Sources et crédits</span></button>
+      <button type="button" class="mbtn secondary" id="p-menu"><span class="i"></span><span>Retour au menu principal</span></button>
+      <p class="help small">Ta progression est gardée : tu pourras continuer depuis le menu.</p>
+    </div>
+  </dialog>
+
+  <!-- ═════════ CONFIRMATION ═════════ -->
+  <dialog id="dlg-confirm" class="pause" aria-labelledby="dlg-confirm-h">
+    <div class="pause-box">
+      <h2 id="dlg-confirm-h">Nouvelle partie ?</h2>
+      <p class="help" id="confirm-text"></p>
+      <button type="button" class="mbtn primary" id="c-yes"><span>Recommencer depuis le début</span></button>
+      <button type="button" class="mbtn secondary" id="c-no"><span>Annuler</span></button>
+    </div>
+  </dialog>
 
   <dialog id="dlg-sources" aria-labelledby="dlg-sources-h">
     <div class="dlg-head"><h2 id="dlg-sources-h">Sources et crédits</h2><button class="close" type="button" data-close aria-label="Fermer">Fermer</button></div>
@@ -54,13 +133,24 @@
   </dialog>
 
   <dialog id="dlg-settings" aria-labelledby="dlg-settings-h">
-    <div class="dlg-head"><h2 id="dlg-settings-h">Réglages</h2><button class="close" type="button" data-close aria-label="Fermer">Fermer</button></div>
+    <div class="dlg-head"><h2 id="dlg-settings-h">Paramètres</h2><button class="close" type="button" data-close aria-label="Fermer">Fermer</button></div>
     <div class="dlg-body">
-      <label class="switch"><input type="checkbox" id="opt-reduced" /><span class="track" aria-hidden="true"></span><span>Réduire les mouvements de caméra</span></label>
-      <p class="help">Remplace les travellings par des plans fixes et des coupes franches. Activé par défaut si votre appareil le demande.</p>
+      <h3>Langue</h3>
+      <div class="seg" role="radiogroup" aria-label="Langue">
+        <button type="button" class="seg-b" role="radio" aria-checked="false" data-set-lang="fr">Français</button>
+        <button type="button" class="seg-b" role="radio" aria-checked="false" data-set-lang="fon">Fon</button>
+      </div>
+      <p class="help">Changer de langue ne relance pas la partie. L’interface et les sous-titres restent en français : la narration fon arrivera lorsque les enregistrements auront été validés par une personne locutrice native.</p>
       <h3>Son</h3>
-      <p class="help">Le jeu ne lance aucun son. Toutes les répliques sont sous-titrées : il se joue entièrement sans son.</p>
-      <p class="help"><strong>Narration en fon :</strong> emplacement réservé. Audio fon à enregistrer et à valider par une personne locutrice native avant d’être activé.</p>
+      <label class="range"><span>Volume</span><input type="range" id="opt-volume" min="0" max="100" step="5" value="80" aria-describedby="vol-out" /><output id="vol-out">80 %</output></label>
+      <p class="help">Le jeu ne lance aucun son de lui-même : un enregistrement ne se joue qu’après un appui sur « Écouter ».</p>
+      <button type="button" class="mbtn secondary" id="opt-replay"><span class="i"></span><span>Réécouter les instructions</span></button>
+      <p class="help" id="replay-msg" aria-live="polite"></p>
+      <h3>Affichage</h3>
+      <label class="switch"><input type="checkbox" id="opt-subs" checked /><span class="track" aria-hidden="true"></span><span>Sous-titres</span></label>
+      <p class="help" id="subs-help">Aucun enregistrement n’est encore disponible : sans sous-titres, les répliques ne seront ni lues ni entendues.</p>
+      <label class="switch"><input type="checkbox" id="opt-reduced" /><span class="track" aria-hidden="true"></span><span>Réduire les animations</span></label>
+      <p class="help">Plans fixes et coupes franches à la place des mouvements de caméra. Activé par défaut si ton appareil le demande.</p>
       <h3>Clavier</h3>
       <dl class="keys">
         <dt><kbd>Tab</kbd></dt><dd>Passer d’une commande à l’autre</dd>
@@ -68,8 +158,8 @@
         <dt><kbd>1</kbd> / <kbd>2</kbd></dt><dd>Choisir la première ou la seconde réponse</dd>
         <dt><kbd>N</kbd></dt><dd>Action principale (Suivant, Continuer…)</dd>
         <dt><kbd>Retour arrière</kbd></dt><dd>Revenir à l’étape précédente</dd>
-        <dt><kbd>M</kbd></dt><dd>Réduire / rétablir les mouvements de caméra</dd>
-        <dt><kbd>Échap</kbd></dt><dd>Fermer une fenêtre</dd>
+        <dt><kbd>M</kbd></dt><dd>Réduire / rétablir les animations</dd>
+        <dt><kbd>Échap</kbd></dt><dd>Pause pendant la partie · fermer une fenêtre</dd>
       </dl>
     </div>
   </dialog>

@@ -13,9 +13,9 @@ import type { Branch } from './story';
 //   3. en hauteur (replay)            — minibus, voiture et ligne ensemble
 // ─────────────────────────────────────────────────────────────
 
-export type ShotId = 'parked' | 'approach' | 'freeze' | 'waitA' | 'passB' | 'police' | 'explain' | 'replay' | 'quiz';
+export type ShotId = 'menu' | 'parked' | 'approach' | 'freeze' | 'waitA' | 'passB' | 'police' | 'explain' | 'replay' | 'quiz';
 
-export interface CamPose { pos: THREE.Vector3; look: THREE.Vector3; wide?: boolean; up?: THREE.Vector3 }
+export interface CamPose { pos: THREE.Vector3; look: THREE.Vector3; wide?: boolean; up?: THREE.Vector3; fov?: number }
 export interface ShotCtx { reduced: boolean; branch: Branch | null; portrait: boolean }
 export interface LabelOut { key: string; text: string; at: THREE.Vector3; tone?: 'stop' | 'warn' | 'info' | 'ok' }
 
@@ -152,6 +152,23 @@ export function hiddenByMinibus(eyeX: number, eyeZ: number, carX: number, carZ: 
 const REPLAY_CAR = (t: number) => CAR_DECISION_X - 4.2 * t; // ralenti ≈ 0,3 × la vitesse réelle
 
 export const SHOTS: Record<ShotId, Shot> = {
+  // Menu principal : plan d'ambiance sur le décor existant (Joseph au feu rouge), sans lancer le récit.
+  menu: {
+    duration: Infinity,
+    pose(w, t, c) {
+      base(w, c); ambient(w, 30 + t * 0.6, null);
+      placeMoto(w.joseph, JOSEPH_X, DECISION_Z);
+      placeCar(w, HIDDEN);
+      w.josephRig.setPose({ headYaw: c.reduced ? 0 : Math.sin(t * 0.35) * 0.12 });
+      // Trois-quarts avant de Joseph qui attend au feu (repère local de sa moto, avant vers -Z).
+      const J = V(JOSEPH_X, 0, DECISION_Z);
+      const local = c.portrait ? V(-2.2, 2.0, -6.0) : V(-2.4, 1.25, -3.6);
+      const look = J.clone().add(c.portrait ? V(0.3, 0.2, 0.2) : V(1.4, 1.2, 0.4));
+      const a = c.reduced ? 0 : Math.sin(t * 0.09) * 0.07;              // très lente respiration de caméra
+      const off = local.clone(); off.applyAxisAngle(V(0, 1, 0), a);
+      return { pos: J.clone().add(off), look, fov: c.portrait ? 48 : 38 };
+    },
+  },
   // 01 — Joseph stationné, téléphone devant le visage
   parked: {
     duration: Infinity,

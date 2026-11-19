@@ -11,7 +11,8 @@ export type Branch = 'A' | 'B';
 export interface Line {
   who: Speaker;
   text: string;
-  fon: string | null; // URL d'une piste validée — aucune pour l'instant
+  fon: string | null; // fichier fon validé (public/audio/fon/…) — aucun pour l'instant
+  fr: string | null;  // fichier français enregistré (public/audio/fr/…) — aucun pour l'instant
 }
 
 export const SPEAKER_LABEL: Record<Speaker, string> = {
@@ -21,7 +22,7 @@ export const SPEAKER_LABEL: Record<Speaker, string> = {
   narration: '',
 };
 
-const L = (who: Speaker, text: string): Line => ({ who, text, fon: null });
+const L = (who: Speaker, text: string): Line => ({ who, text, fon: null, fr: null });
 
 export type StepId =
   | '01' | '02' | '03' | '04A' | '04B' | '05'

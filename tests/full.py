@@ -16,8 +16,11 @@ async def run(p, name, vp, branch, mobile=False, reduced=False):
     pg = await c.new_page()
     errs=[]
     pg.on('pageerror', lambda e: errs.append(str(e)))
+    await pg.add_init_script("try{localStorage.setItem('marina.lang','fr');localStorage.setItem('marina.tutoSeen','1');localStorage.removeItem('marina.save')}catch(e){}")
     await pg.goto(URL); await pg.wait_for_timeout(1500)
     M = lambda k: pg.evaluate(f'window.__marina.{k}')
+    ok(await M('mode')=='menu', f'{name}: ouverture sur le menu principal')
+    st = pg.locator('#m-start'); await (st.tap() if mobile else st.click()); await pg.wait_for_timeout(400)
     async def shot(tag): await pg.screenshot(path=f'{OUT}{name}-{tag}.png')
     async def click(text):
         loc = pg.locator('#actions button', has_text=text).first
@@ -108,8 +111,11 @@ async def run(p, name, vp, branch, mobile=False, reduced=False):
 async def keyboard(p):
     b = await p.chromium.launch(args=ARGS); pg = await b.new_page(viewport={'width':1280,'height':800})
     errs=[]; pg.on('pageerror', lambda e: errs.append(str(e)))
+    await pg.add_init_script("try{localStorage.setItem('marina.lang','fr');localStorage.setItem('marina.tutoSeen','1');localStorage.removeItem('marina.save')}catch(e){}")
     await pg.goto(URL); await pg.wait_for_timeout(1500)
     M = lambda k: pg.evaluate(f'window.__marina.{k}')
+    foc0 = await pg.evaluate('document.activeElement.id'); ok(foc0=='m-start', f'clavier: focus initial du menu sur Commencer ({foc0})')
+    await pg.keyboard.press('Enter'); await pg.wait_for_timeout(400)
     foc = await pg.evaluate('document.activeElement.textContent'); ok('Suivant' in foc, f'clavier: focus initial sur l’action principale ({foc.strip()})')
     await pg.keyboard.press('Enter'); await pg.wait_for_timeout(200); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(300)
     ok(await M('step')=='02', 'clavier: Entrée → 02')

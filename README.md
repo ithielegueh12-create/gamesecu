@@ -4,13 +4,6 @@ Jeu web 3D de prévention routière. Joseph, motocycliste en retard, arrive à u
 
 **Critère de réussite :** après avoir joué, une personne peut montrer où Joseph devait s’arrêter (avant la ligne d’arrêt), expliquer pourquoi il ne voyait pas la voiture (le minibus masquait la rue) et distinguer l’assurance moto (dommages causés aux autres) de la protection CNSS (certains accidents de trajet, sous conditions).
 
-## Jouer en ligne
-
-Le jeu est publié automatiquement sur GitHub Pages à chaque mise à jour de la branche `main` (workflow `.github/workflows/pages.yml`) :
-https://ithielegueh12-create.github.io/gamesecu/
-
-Réalisé avec l’aide d’une IA générative (Claude, Anthropic) : voir la section « Méthode et usage de l’IA » du fichier Figma du projet.
-
 ## Lancer le jeu
 
 Prérequis : Node.js 18 ou plus récent.
@@ -23,6 +16,24 @@ npm run preview    # sert le build : http://localhost:4173
 ```
 
 `dist/index.html` contient tout le jeu (JS + CSS inline). On peut l’ouvrir via n’importe quel serveur statique.
+
+## Menu principal et états du jeu (v4)
+
+Le jeu s’ouvre sur un **menu principal** et ne démarre jamais seul. Fond : le carrefour 3D existant, Joseph sur sa moto avant la ligne, caméra de trois-quarts face avec un très léger balancement (supprimé si « Réduire les animations » est actif).
+
+| État | Contenu |
+|---|---|
+| **Menu** | CARREFOUR 2026 · 8 H 00 — LE PIÈGE DE LA MARINA · « Chaque décision compte. » · choix de langue (Français / Fon, chacun avec un bouton d’écoute d’exemple) · Continuer (seulement si une partie est sauvegardée) · Commencer · Comment jouer ? · Paramètres · Sources et crédits |
+| **Tutoriel** | 3 écrans illustrés ÉCOUTER / CHOISIR / CONTINUER, emplacement de voix FR/fon, bouton « Passer ». Affiché à la première partie, puis rouvrable via « Comment jouer ? » ou « Réécouter les instructions » depuis le menu |
+| **Jeu** | Scènes 01 → fin inchangées ; barre haute : Retour, étape, heure, Paramètres, Pause |
+| **Pause** | Reprendre · Recommencer la scène · Paramètres · Sources et crédits · Retour au menu principal. Le temps est figé (touche `Échap` ou bouton Pause) |
+| **Fin** | Découvrir l’autre choix · Rejouer · Retour au menu principal · Sources. Pas de redémarrage automatique |
+
+- **Langue obligatoire** : « Commencer » sans langue met le choix en évidence et affiche « Choisis d’abord ta langue : Français ou Fon. ». La langue est mémorisée et se change dans Paramètres sans relancer la partie.
+- **Progression** : enregistrée à chaque étape (`localStorage`, clé `marina.save` : étape, branche, historique). « Retour au menu » ne l’efface pas ; « Commencer » demande confirmation avant de l’écraser.
+- **Paramètres** (menu et jeu) : Langue · Volume · Réécouter les instructions · Sous-titres activés/désactivés · Réduire les animations.
+- **Audio** : aucun fichier audio n’est livré. Tous les boutons d’écoute sont désactivés avec la mention « Exemple à enregistrer », « Audio français à enregistrer » ou « Audio fon à enregistrer et à valider ». Aucune traduction fon n’a été inventée. Voir `public/audio/LISEZ-MOI.md` pour brancher les enregistrements (`src/audio.ts`, champs `fr`/`fon` de `story.ts`).
+- Aucune connexion, aucun compte.
 
 ## Déroulement
 
@@ -43,7 +54,7 @@ npm run preview    # sert le build : http://localhost:4173
 ## Commandes
 
 - Souris / toucher : grands boutons (≥ 52 px, choix de l’étape 03 : 84 px sur ordinateur, 68 px sur téléphone).
-- Clavier : `Tab` pour naviguer, `Entrée`/`Espace` pour activer, `1`/`2` pour les choix et le quiz, `N` pour l’action principale, `Retour arrière` pour l’étape précédente, `M` pour réduire les mouvements, `Échap` pour fermer une fenêtre. Focus visible (contour jaune + marine).
+- Clavier : `Tab` pour naviguer, `Entrée`/`Espace` pour activer, flèches dans le choix de langue et le tutoriel, `1`/`2` pour les choix et le quiz, `N` pour l’action principale, `Retour arrière` pour l’étape précédente, `M` pour réduire les mouvements, `Échap` pour la pause (ou fermer une fenêtre). Focus visible (contour jaune + marine).
 - Réglages : « Réduire les mouvements de caméra » (activé d’office si le système le demande) — plans fixes et coupes franches au lieu des travellings.
 - Son : aucun son n’est lancé. Toutes les répliques sont sous-titrées ; le jeu se parcourt entièrement sans son.
 
@@ -100,8 +111,11 @@ La pose par cinématique inverse de `joseph.ts` peut alors piloter les os du GLB
 src/story.ts   Données du récit : étapes, répliques (avec emplacement `fon`), repères temporels, quiz, sources, crédits
 src/shots.ts   Plans de caméra et poses : fonctions pures du temps → les deux branches sont identiques à chaque répétition
 src/world.ts   Décor 3D procédural (carrefour, bâtiments, palmiers, minibus, voiture, motos, personnages, feux, aides du ralenti)
-src/pictos.ts  Pictogrammes et icônes SVG originaux
-src/main.ts    Machine à états des étapes, interface, clavier, boucle de rendu
+src/joseph.ts  Joseph, personnage humain articulé (IK bras/jambes, points de contact moto)
+src/audio.ts   Langues, emplacements audio FR/fon (vides), lecteur unique sans lecture automatique
+src/pictos.ts  Pictogrammes, icônes et illustrations du tutoriel (SVG originaux)
+src/main.ts    États Menu / Tutoriel / Jeu / Pause / Fin, étapes, sauvegarde, paramètres, clavier, rendu
+public/audio/  Dossiers fr/ et fon/ prêts à recevoir les enregistrements
 src/style.css  Interface (jetons de couleur, échelle d’espacement 4 px, mobile)
 ```
 
@@ -140,7 +154,9 @@ Chaque réplique de `story.ts` porte un champ `fon: null`. Un bouton désactivé
 
 ## Tests réalisés (Chromium sans tête, rendu WebGL logiciel)
 
-Scripts dans `tests/` (Python + Playwright) : `python3 tests/full.py [dA|dB|mA|mB|kb]`, `tests/det.py`.
+Scripts dans `tests/` (Python + Playwright) : `python3 tests/journey.py [d|t|m]`, `python3 tests/full.py [dA|dB|mA|mB|kb]`, `tests/det.py`.
+
+- **Parcours menu (journey.py)** sur ordinateur 1280 × 800 et téléphone 390 × 844 (tactile) : ouverture sur le menu sans démarrage automatique → Commencer refusé sans langue → Fon (exemple marqué « à enregistrer ») → Français → tutoriel 3 écrans → 01 → pause (temps figé) / reprise → paramètres en jeu (langue changée sans redémarrer, volume, sous-titres, réécoute) → choix A → quiz → fin (4 actions, pas de redémarrage) → retour au menu → rechargement (langue + Continuer conservés) → confirmation avant nouvelle partie → Échap → pause → menu → Comment jouer ? → Continuer : 0 échec, aucune erreur JS, aucun son lancé.
 
 - Parcours complet branche A et branche B sur ordinateur (1280 × 800) et téléphone (390 × 844, tactile) : 0 échec.
 - Ralenti du carrefour : étiquettes ligne d’arrêt, minibus, zone invisible, voiture ; conclusion du policier ; « Revoir le carrefour » rejouable.

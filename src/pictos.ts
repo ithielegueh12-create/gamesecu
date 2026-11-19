@@ -59,6 +59,29 @@ export const PICTO = {
   moto: S('0 0 48 32', motoPath(6, 6, 1), 'Moto'),
 };
 
+
+/** Illustrations du tutoriel (trois actions, lisibles sans lire). */
+export const TUTO_ART = {
+  ecouter: S('0 0 160 120', `
+    <rect x="18" y="24" width="124" height="72" rx="10" fill="#fbf8f1"/>
+    <path d="M44 50 H58 L76 36 V84 L58 70 H44 Z" fill="var(--accent)"/>
+    <path d="M88 48 a16 16 0 0 1 0 24"/><path d="M96 40 a28 28 0 0 1 0 40"/><path d="M104 32 a40 40 0 0 1 0 56" stroke-dasharray="3 5"/>`,
+    'Un haut-parleur : appuie pour écouter la consigne'),
+  choisir: S('0 0 160 120', `
+    <rect x="14" y="22" width="62" height="40" rx="8" fill="#17804a" stroke="#17804a"/>
+    <rect x="84" y="22" width="62" height="40" rx="8" fill="#fbf8f1"/>
+    <path d="M30 42 l8 8 l16 -16" stroke="#fff" stroke-width="3"/>
+    <path d="M104 34 l22 16 M126 34 l-22 16" stroke-width="2.5"/>
+    <path d="M44 104 V76 a5 5 0 0 1 10 0 V90 l14 3 a6 6 0 0 1 5 7 l-2 4" fill="var(--accent)"/>
+    <circle cx="49" cy="66" r="4" fill="var(--accent)" stroke="none"/>`,
+    'Un doigt touche une des deux réponses'),
+  continuer: S('0 0 160 120', `
+    <rect x="22" y="38" width="116" height="48" rx="10" fill="var(--accent)" stroke="var(--accent)"/>
+    <path d="M52 62 H104"/><path d="M92 50 L106 62 L92 74"/>
+    <path d="M110 108 V92 a5 5 0 0 1 10 0" />`,
+    'Une flèche : appuie pour passer à la suite'),
+};
+
 export const ICON = {
   back: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg>`,
   hand: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12 V6.5 a1.5 1.5 0 0 1 3 0 V11 V4.5 a1.5 1.5 0 0 1 3 0 V11 V5.5 a1.5 1.5 0 0 1 3 0 V12 V8.5 a1.5 1.5 0 0 1 3 0 V14 c0 4 -3 7 -7 7 c-3 0 -5 -1.5 -6.5 -4 L4 13.5 a1.6 1.6 0 0 1 2.6 -1.8 Z"/></svg>`,
@@ -71,4 +94,12 @@ export const ICON = {
   phone: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5 H13"/></svg>`,
   check: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17 L19 7"/></svg>`,
   cross: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M8 5.5 L19 12 L8 18.5 Z"/></svg>`,
+  pause: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>`,
+  home: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 L12 4 L20 11"/><path d="M6.5 9.5 V20 H17.5 V9.5"/><path d="M10 20 V14 H14 V20"/></svg>`,
+  help: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5 a2.5 2.5 0 1 1 3.5 2.3 c-0.7 0.3 -1 0.9 -1 1.7 V14.5"/><path d="M12 17.5 V17.6"/></svg>`,
+  next: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg>`,
+  prev: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12 H5"/><path d="M11 6 L5 12 L11 18"/></svg>`,
+  ear: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9 a5 5 0 1 1 10 0 c0 3 -3 4 -3 7 a3 3 0 0 1 -5.5 1.6"/><path d="M10 9.5 a2 2 0 1 1 4 0 c0 1.2 -1.2 1.6 -1.6 2.6"/></svg>`,
+  globe: `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12 H21"/><path d="M12 3 C8.5 7 8.5 17 12 21 C15.5 17 15.5 7 12 3 Z"/></svg>`,
 };

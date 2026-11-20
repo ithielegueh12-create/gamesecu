@@ -4,6 +4,19 @@ Jeu web 3D de prévention routière. Joseph, motocycliste en retard, arrive à u
 
 **Critère de réussite :** après avoir joué, une personne peut montrer où Joseph devait s’arrêter (avant la ligne d’arrêt), expliquer pourquoi il ne voyait pas la voiture (le minibus masquait la rue) et distinguer l’assurance moto (dommages causés aux autres) de la protection CNSS (certains accidents de trajet, sous conditions).
 
+## Jouer en ligne
+
+**Lien du jeu (PC et mobile) : https://ithielegueh12-create.github.io/gamesecu/**
+
+Le jeu est publié automatiquement par GitHub Actions (`.github/workflows/pages.yml`) à chaque envoi sur `main` : le workflow compile le jeu (`npm ci`, `npm run build`) puis publie `dist/`.
+
+Réglage à faire **une seule fois** (sinon le lien affiche une erreur 404 et le workflow échoue avec « Get Pages site failed ») :
+1. Ouvrir https://github.com/ithielegueh12-create/gamesecu/settings/pages
+2. Dans **Build and deployment → Source**, choisir **GitHub Actions**.
+3. Onglet **Actions** → **Publier sur GitHub Pages** → **Run workflow** (ou faire un nouvel envoi sur `main`).
+
+Le dossier `docs/` contient aussi le jeu compilé, pour un éventuel hébergement « Deploy from a branch → main → /docs ».
+
 ## Lancer le jeu
 
 Prérequis : Node.js 18 ou plus récent.
